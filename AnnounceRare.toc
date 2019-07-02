@@ -1,7 +1,7 @@
 ## Interface: 80200
 ## Author: Crackpotx
 ## Title: Announce Rare (BFA 8.2)
-## Version: 1.0.0
+## Version: 1.0.1
 ## Notes: Announce rares to Mechagon and Nazjatar general chat.
 ## SavedVariables: AnnounceRareDB
 
@@ -11,6 +11,6 @@ Libraries\AceAddon-3.0\AceAddon-3.0.xml
 Libraries\AceConsole-3.0\AceConsole-3.0.xml
 Libraries\AceDB-3.0\AceDB-3.0.xml
 Libraries\AceEvent-3.0\AceEvent-3.0.xml
-Libraries\AceTimer-3.0\AceTimer-3.0.xml
+Libraries\ChatThrottleLib\ChatThrottleLib.xml
 
 AnnounceRare.lua

@@ -2,6 +2,7 @@
 -- Announce Rare (BFA 8.2) By Crackpotx (US, Lightbringer)
 -------------------------------------------------------------------------------
 local AR = LibStub("AceAddon-3.0"):NewAddon("AnnounceRare", "AceConsole-3.0", "AceEvent-3.0", "AceTimer-3.0")
+local CTL = assert(ChatThrottleLib, "AnnounceRare requires ChatThrottleLib.")
 
 -- local api cache
 local C_Map_GetBestMapForUnit = C_Map.GetBestMapForUnit
@@ -58,7 +59,7 @@ local function AnnounceRare()
 	chatMsg = chatMsg:gsub("<COMBAT>", UnitAffectingCombat("target") and "has been engaged!" or "has NOT been engaged!")
 
 	-- send the message
-	SendChatMessage(chatMsg, "CHANNEL", "COMMON", 1)
+	CTL:SendChatMessage("NORMAL", "AnnounceRare", chatMsg, "CHANNEL", "COMMON", 1)
 end
 
 function AR:Print(msg)
@@ -74,10 +75,6 @@ function AR:PLAYER_TARGET_CHANGED()
 			if UnitExists("target") and (tarClass == "rare" or tarClass == "rareelite") and not UnitIsDead("target") then
 				-- announce the rare
 				AnnounceRare()
-
-				-- set the flag to throttle this and schedule a timer to disable it
-				self.msgSent = true
-				self.throttle = self:ScheduleTimer(function(self) AR.msgSent = false end, 30)
 			end
 		end
 	end
@@ -91,6 +88,13 @@ function AR:PLAYER_ENTERING_WORLD()
 			self:Print("Auto Announce has been " .. (self.db.global.autoAnnounce == true and "ENABLED!" or "DISABLED"))
 		elseif args == "autostatus" then
 			self:Print("Auto Announce is " .. (self.db.global.autoAnnounce == true and "ENABLED!" or "DISABLED!"))
+		elseif args == "armory" then
+			if GetZoneText():lower() == "mechagon" then
+				local tarPos = C_Map_GetPlayerMapPosition(C_Map_GetBestMapForUnit("player"), "player")
+				CTL:SendChatMessage("NORMAL", "AnnounceRare", ("Armory is located at %s"):format(coordString:format(ceil(tarPos.x * 10000) / 100, ceil(tarPos.y * 10000) / 100)), "CHANNEL", "COMMON", 1)
+			else
+				self:Print("You must be in Mechagon to announce armories.")
+			end
 		else
 			local zoneText = GetZoneText()
 			-- only do anything when the player is in mechagon or nazjatar
