@@ -17,5 +17,7 @@ externals:
 		url: https://repos.wowace.com/wow/ace3/trunk/AceDB-3.0
 	Libraries\AceEvent-3.0:
 		url: https://repos.wowace.com/wow/ace3/trunk/AceEvent-3.0
+	Libraries\AceTimer-3.0:
+		url: https://repos.wowace.com/wow/ace3/trunk/AceTimer-3.0
 	Libraries\ChatThrottleLib:
 		url: https://repos.curseforge.com/wow/chatthrottlelib/trunk

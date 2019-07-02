@@ -31,7 +31,7 @@ local defaults = {
 	}
 }
 
-function FormatNumber(n)
+local function FormatNumber(n)
     if n >= 10^6 then
         return format("%.2fm", n / 10^6)
     elseif n >= 10^3 then
@@ -62,8 +62,17 @@ local function AnnounceRare()
 	CTL:SendChatMessage("NORMAL", "AnnounceRare", chatMsg, "CHANNEL", "COMMON", 1)
 end
 
+local function FindInArray(toFind, arraySearch)
+	for _, value in pairs(arraySearch) do
+		if value == toFind then
+			return true
+		end
+	end
+	return false
+end
+
 function AR:Print(msg)
-	print(("|cffffff00AnnounceRare: %s|r"):format(msg))
+	print(("|cffffff00AnnounceRare:|r |cffffffff%s|r"):format(msg))
 end
 
 function AR:PLAYER_TARGET_CHANGED()
@@ -73,15 +82,23 @@ function AR:PLAYER_TARGET_CHANGED()
 			-- only do anything when the player is in mechagon or nazjatar
 		if zoneText:lower() == "mechagon" or zoneText:lower() == "nazjatar" then
 			if UnitExists("target") and (tarClass == "rare" or tarClass == "rareelite") and not UnitIsDead("target") then
-				-- announce the rare
-				AnnounceRare()
+				if not FindInArray(UnitName("target"), self.rares) then
+					-- announce the rare
+					AnnounceRare()
+
+					-- add it to the filter
+					self.rares[#self.rares + 1] = UnitName("target")
+				else
+					self:Print("Announcement suppressed due to throttle limit.")
+				end
 			end
 		end
 	end
 end
 
 function AR:PLAYER_ENTERING_WORLD()
-	self.msgSent = false
+	self.rares = {}
+
 	self:RegisterChatCommand("rare", function(args)
 		if args == "auto" then
 			self.db.global.autoAnnounce = not self.db.global.autoAnnounce
@@ -102,6 +119,9 @@ function AR:PLAYER_ENTERING_WORLD()
 				local tarClass = UnitClassification("target")
 				if UnitExists("target") and (tarClass == "rare" or tarClass == "rareelite") and not UnitIsDead("target") then
 					AnnounceRare()
+
+					-- add it to the filter
+					self.rares[#self.rares + 1] = UnitName("target")
 				elseif not UnitExists("target") then
 					self:Print("You do not have a target.")
 				elseif UnitIsDead("target") then
