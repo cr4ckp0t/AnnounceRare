@@ -26,17 +26,14 @@ local format = string.format
 local tostring = tostring
 local pairs = pairs
 
---local messageToSend = "<ADVERTISEMENT><NAME> (<HEALTH>) is at <COORDS>, and <COMBAT>"
---local deathMessage = "<ADVERTISEMENT><NAME> has been slain at <HOURS>:<MINUTES>!"
 local messageToSend = "%s%s (%s/%s %.2f%%) is at %s %s, and %s"
 local deathMessage = "%s%s has been slain at %02d:%02d!"
-local healthString = "%s/%s %.2f"
---local coordString = "%s %s"
 local defaults = {
 	global = {
 		autoAnnounce = false,
 		advertise = false,
 		announceDeath = true,
+		onLoad = false,
 	}
 }
 
@@ -65,15 +62,6 @@ local function AnnounceRare()
 	local tarHealthPercent = (tarHealth / tarHealthMax) * 100
 	local tarPos = C_Map_GetPlayerMapPosition(C_Map_GetBestMapForUnit("player"), "player")
 
-	-- fill in the wildcards
-	--local chatMsg = messageToSend:gsub("<ADVERTISEMENT>", (AR.db.global.advertise == true and "AnnounceRare: " or ""))
-	--chatMsg = chatMsg:gsub("<NAME>", UnitName("target"))
-	--chatMsg = chatMsg:gsub("<HEALTH>", healthString:format(FormatNumber(tarHealth), FormatNumber(tarHealthMax), tarHealthPercent) .. "%%")
-	--chatMsg = chatMsg:gsub("<COORDS>", coordString:format(ceil(tarPos.x * 10000) / 100, ceil(tarPos.y * 10000) / 100))
-	--fchatMsg = chatMsg:gsub("<COMBAT>", UnitAffectingCombat("target") and "has been engaged!" or "has NOT been engaged!")
-
-	-- send the message
-	--CTL:SendChatMessage("NORMAL", "AnnounceRare", chatMsg, "CHANNEL", "COMMON", 1)
 	CTL:SendChatMessage("NORMAL", "AnnounceRare", messageToSend:format(
 		AR.db.global.advertise == true and "AnnounceRare: " or "",
 		UnitName("target"),
@@ -157,14 +145,19 @@ function AR:PLAYER_ENTERING_WORLD()
 			self:Print("|cffffff00/rare armory|r - Announce Mechagon armory location to general chat.")
 			self:Print("|cffffff00/rare auto|r - Toggle auto announcements.")
 			self:Print("|cffffff00/rare death|r - Toggle death announcements.")
+			self:Print("|cffffff00/rare load|r - Toggle loading announcement.")
 			self:Print("|cffffff00/rare status|r or |cffffff00/rare config|r - Print current configuration.")
 			self:Print("|cffffff00/rare help|r or |cffffff00/rare ?|r - Print this help again.")
+		elseif args == "load" then
+			self.db.global.onLoad = not self.db.global.onLoad
+			self:Print(("Loading message has been %s!"):format(GetConfigStatus(self.db.global.onLoad)))
 		elseif args == "status" or args == "config" then
 			self:Print(("AnnounceRare by Crackpotx v%s"):format(self.version))
 			self:Print("For Help: |cffffff00/rare help|r")
 			self:Print(("Advertisements: %s"):format(GetConfigStatus(self.db.global.advertise)))
 			self:Print(("Automatic Announcements: %s"):format(GetConfigStatus(self.db.global.autoAnnounce)))
 			self:Print(("Death Announcements: %s"):format(GetConfigStatus(self.db.global.announceDeath)))
+			self:Print(("Load Announcement: %s"):format(GetConfigStatus(self.db.global.onLoad)))
 		elseif args == "" then
 			local zoneText = GetZoneText()
 			-- only do anything when the player is in mechagon or nazjatar
@@ -187,6 +180,10 @@ function AR:PLAYER_ENTERING_WORLD()
 			end
 		end
 	end)
+
+	if self.db.global.onLoad == true then
+		self:Print(("AnnounceRare v%s loaded! Please use |cffffff00/rare help|r for commands."):format(GetAddOnMetadata("AnnounceRare", "Version")))
+	end
 end
 
 function AR:OnInitialize()
