@@ -1,5 +1,2 @@
 /.vscode
-/Libraries/Ace*
-/Libraries/CallbackHandler-1.0
-/Libraries/LibStub
-/Libraries/ChatThrottleLib
+/Libraries

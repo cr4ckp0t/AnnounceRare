@@ -1,35 +1,48 @@
 -------------------------------------------------------------------------------
 -- Announce Rare (BFA 8.2) By Crackpotx (US, Lightbringer)
 -------------------------------------------------------------------------------
-local AR = LibStub("AceAddon-3.0"):NewAddon("AnnounceRare", "AceConsole-3.0", "AceEvent-3.0", "AceTimer-3.0")
+local AR = LibStub("AceAddon-3.0"):NewAddon("AnnounceRare", "AceConsole-3.0", "AceEvent-3.0")
+AR.version = GetAddOnMetadata("AnnounceRare", "Version")
 local CTL = assert(ChatThrottleLib, "AnnounceRare requires ChatThrottleLib.")
 
 -- local api cache
 local C_Map_GetBestMapForUnit = C_Map.GetBestMapForUnit
 local C_Map_GetPlayerMapPosition = C_Map.GetPlayerMapPosition
-local GetPlayerMapPosition = GetPlayerMapPosition
-local GetZoneText = GetZoneText
-local SendChatMessage = SendChatMessage
-local UnitAffectingCombat = UnitAffectingCombat
-local UnitClassification = UnitClassification
-local UnitExists = UnitExists
-local UnitHealth = UnitHealth
-local UnitHealthMax = UnitHealthMax
-local UnitIsDead = UnitIsDead
-local UnitName = UnitName
+local CombatLogGetCurrentEventInfo = _G["CombatLogGetCurrentEventInfo"]
+local GetGameTime = _G["GetGameTime"]
+local GetPlayerMapPosition = _G["GetPlayerMapPosition"]
+local GetZoneText = _G["GetZoneText"]
+local SendChatMessage = _G["SendChatMessage"]
+local UnitAffectingCombat = _G["UnitAffectingCombat"]
+local UnitClassification = _G["UnitClassification"]
+local UnitExists = _G["UnitExists"]
+local UnitHealth = _G["UnitHealth"]
+local UnitHealthMax = _G["UnitHealthMax"]
+local UnitIsDead = _G["UnitIsDead"]
+local UnitName = _G["UnitName"]
 
 local ceil = math.ceil
 local format = string.format
 local tostring = tostring
+local pairs = pairs
 
-local messageToSend = "<NAME> (<HEALTH>) is at <COORDS>, and <COMBAT>"
+--local messageToSend = "<ADVERTISEMENT><NAME> (<HEALTH>) is at <COORDS>, and <COMBAT>"
+--local deathMessage = "<ADVERTISEMENT><NAME> has been slain at <HOURS>:<MINUTES>!"
+local messageToSend = "%s%s (%s/%s %.2f%%) is at %s %s, and %s"
+local deathMessage = "%s%s has been slain at %02d:%02d!"
 local healthString = "%s/%s %.2f"
-local coordString = "%s %s"
+--local coordString = "%s %s"
 local defaults = {
 	global = {
 		autoAnnounce = false,
+		advertise = false,
+		announceDeath = true,
 	}
 }
+
+local function GetConfigStatus(configVar)
+	return configVar == true and "|cff00ff00ENABLED|r" or "|cffff0000DISABLED|r"
+end
 
 local function FormatNumber(n)
     if n >= 10^6 then
@@ -53,16 +66,28 @@ local function AnnounceRare()
 	local tarPos = C_Map_GetPlayerMapPosition(C_Map_GetBestMapForUnit("player"), "player")
 
 	-- fill in the wildcards
-	local chatMsg = messageToSend:gsub("<NAME>", UnitName("target"))
-	chatMsg = chatMsg:gsub("<HEALTH>", healthString:format(FormatNumber(tarHealth), FormatNumber(tarHealthMax), tarHealthPercent) .. "%%")
-	chatMsg = chatMsg:gsub("<COORDS>", coordString:format(ceil(tarPos.x * 10000) / 100, ceil(tarPos.y * 10000) / 100))
-	chatMsg = chatMsg:gsub("<COMBAT>", UnitAffectingCombat("target") and "has been engaged!" or "has NOT been engaged!")
+	--local chatMsg = messageToSend:gsub("<ADVERTISEMENT>", (AR.db.global.advertise == true and "AnnounceRare: " or ""))
+	--chatMsg = chatMsg:gsub("<NAME>", UnitName("target"))
+	--chatMsg = chatMsg:gsub("<HEALTH>", healthString:format(FormatNumber(tarHealth), FormatNumber(tarHealthMax), tarHealthPercent) .. "%%")
+	--chatMsg = chatMsg:gsub("<COORDS>", coordString:format(ceil(tarPos.x * 10000) / 100, ceil(tarPos.y * 10000) / 100))
+	--fchatMsg = chatMsg:gsub("<COMBAT>", UnitAffectingCombat("target") and "has been engaged!" or "has NOT been engaged!")
 
 	-- send the message
-	CTL:SendChatMessage("NORMAL", "AnnounceRare", chatMsg, "CHANNEL", "COMMON", 1)
+	--CTL:SendChatMessage("NORMAL", "AnnounceRare", chatMsg, "CHANNEL", "COMMON", 1)
+	CTL:SendChatMessage("NORMAL", "AnnounceRare", messageToSend:format(
+		AR.db.global.advertise == true and "AnnounceRare: " or "",
+		UnitName("target"),
+		FormatNumber(tarHealth),
+		FormatNumber(tarHealthMax),
+		tarHealthPercent,
+		ceil(tarPos.x * 10000) / 100,
+		ceil(tarPos.y * 10000) / 100,
+		UnitAffectingCombat("target") == true and "has been engaged!" or "has NOT been engaged!"
+	), "CHANNEL", "COMMON", 1)
 end
 
 local function FindInArray(toFind, arraySearch)
+	if #arraySearch == 0 then return false end
 	for _, value in pairs(arraySearch) do
 		if value == toFind then
 			return true
@@ -72,7 +97,7 @@ local function FindInArray(toFind, arraySearch)
 end
 
 function AR:Print(msg)
-	print(("|cffffff00AnnounceRare:|r |cffffffff%s|r"):format(msg))
+	print(("|cffff7d0aAR:|r |cffffffff%s|r"):format(msg))
 end
 
 function AR:PLAYER_TARGET_CHANGED()
@@ -88,10 +113,19 @@ function AR:PLAYER_TARGET_CHANGED()
 
 					-- add it to the filter
 					self.rares[#self.rares + 1] = UnitName("target")
-				else
-					self:Print("Announcement suppressed due to throttle limit.")
 				end
 			end
+		end
+	end
+end
+
+function AR:COMBAT_LOG_EVENT_UNFILTERED()
+	local _, subevent, _, _, _, _, _, _, sourceName = CombatLogGetCurrentEventInfo()
+
+	if subevent == "UNIT_DIED" then
+		if self.db.global.announceDeath == true and #self.rares > 0 and FindInArray(sourceName, self.rares) then
+			local hours, minutes = GetGameTime()
+			CTL:SendChatMessage("NORMAL", "AnnounceRare", deathMessage:format(AR.db.global.advertise == true and "AnnounceRare: " or "", sourceName, hours, minutes), "CHANNEL", "COMMON", 1)
 		end
 	end
 end
@@ -99,12 +133,17 @@ end
 function AR:PLAYER_ENTERING_WORLD()
 	self.rares = {}
 
+	-- chat command using aceconsole-3.0
 	self:RegisterChatCommand("rare", function(args)
 		if args == "auto" then
 			self.db.global.autoAnnounce = not self.db.global.autoAnnounce
-			self:Print("Auto Announce has been " .. (self.db.global.autoAnnounce == true and "ENABLED!" or "DISABLED"))
-		elseif args == "autostatus" then
-			self:Print("Auto Announce is " .. (self.db.global.autoAnnounce == true and "ENABLED!" or "DISABLED!"))
+			self:Print(("Auto Announce has been %s!"):format(GetConfigStatus(self.db.global.autoAnnounce)))
+		elseif args == "death" then
+			self.db.global.announceDeath = not self.db.global.announceDeath
+			self:Print(("Death Announcements have been %s!"):format(GetConfigStatus(self.db.global.announceDeath)))
+		elseif args == "adv" then
+			self.db.global.advertise = not self.db.global.advertise
+			self:Print(("Advertisements have been %s!"):format(GetConfigStatus(self.db.global.advertise)))
 		elseif args == "armory" then
 			if GetZoneText():lower() == "mechagon" then
 				local tarPos = C_Map_GetPlayerMapPosition(C_Map_GetBestMapForUnit("player"), "player")
@@ -112,7 +151,21 @@ function AR:PLAYER_ENTERING_WORLD()
 			else
 				self:Print("You must be in Mechagon to announce armories.")
 			end
-		else
+		elseif args == "help" or args == "?" then
+			self:Print("Command Line Help")
+			self:Print("|cffffff00/rare|r - Announce rare to general chat.")
+			self:Print("|cffffff00/rare armory|r - Announce Mechagon armory location to general chat.")
+			self:Print("|cffffff00/rare auto|r - Toggle auto announcements.")
+			self:Print("|cffffff00/rare death|r - Toggle death announcements.")
+			self:Print("|cffffff00/rare status|r or |cffffff00/rare config|r - Print current configuration.")
+			self:Print("|cffffff00/rare help|r or |cffffff00/rare ?|r - Print this help again.")
+		elseif args == "status" or args == "config" then
+			self:Print(("AnnounceRare by Crackpotx v%s"):format(self.version))
+			self:Print("For Help: |cffffff00/rare help|r")
+			self:Print(("Advertisements: %s"):format(GetConfigStatus(self.db.global.advertise)))
+			self:Print(("Automatic Announcements: %s"):format(GetConfigStatus(self.db.global.autoAnnounce)))
+			self:Print(("Death Announcements: %s"):format(GetConfigStatus(self.db.global.announceDeath)))
+		elseif args == "" then
 			local zoneText = GetZoneText()
 			-- only do anything when the player is in mechagon or nazjatar
 			if zoneText:lower() == "mechagon" or zoneText:lower() == "nazjatar" then
@@ -140,5 +193,6 @@ function AR:OnInitialize()
 	self.db = LibStub("AceDB-3.0"):New("AnnounceRareDB", defaults)
 	self:RegisterEvent("PLAYER_ENTERING_WORLD")
 	self:RegisterEvent("PLAYER_TARGET_CHANGED")
+	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 end
 
