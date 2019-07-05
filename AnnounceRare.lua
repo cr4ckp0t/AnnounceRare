@@ -4,6 +4,7 @@
 local AR = LibStub("AceAddon-3.0"):NewAddon("AnnounceRare", "AceConsole-3.0", "AceEvent-3.0")
 AR.version = GetAddOnMetadata("AnnounceRare", "Version")
 local CTL = assert(ChatThrottleLib, "AnnounceRare requires ChatThrottleLib.")
+local L = LibStub("AceLocale-3.0"):GetLocale("AnnounceRare", false)
 
 -- local api cache
 local C_Map_GetBestMapForUnit = C_Map.GetBestMapForUnit
@@ -26,8 +27,8 @@ local format = string.format
 local tostring = tostring
 local pairs = pairs
 
-local messageToSend = "%s%s (%s/%s %.2f%%) is at %s %s, and %s"
-local deathMessage = "%s%s has been slain at %02d:%02d!"
+local messageToSend = L["%s%s (%s/%s %.2f%%) is at %s %s, and %s"]
+local deathMessage = L["%s%s has been slain at %02d:%02d!"]
 local defaults = {
 	global = {
 		autoAnnounce = false,
@@ -38,7 +39,7 @@ local defaults = {
 }
 
 local function GetConfigStatus(configVar)
-	return configVar == true and "|cff00ff00ENABLED|r" or "|cffff0000DISABLED|r"
+	return configVar == true and L["|cff00ff00ENABLED|r"] or L["|cffff0000DISABLED|r"]
 end
 
 local function FormatNumber(n)
@@ -70,7 +71,7 @@ local function AnnounceRare()
 		tarHealthPercent,
 		ceil(tarPos.x * 10000) / 100,
 		ceil(tarPos.y * 10000) / 100,
-		UnitAffectingCombat("target") == true and "has been engaged!" or "has NOT been engaged!"
+		UnitAffectingCombat("target") == true and L["has been engaged!"] or L["has NOT been engaged!"]
 	), "CHANNEL", "COMMON", 1)
 end
 
@@ -125,39 +126,39 @@ function AR:PLAYER_ENTERING_WORLD()
 	self:RegisterChatCommand("rare", function(args)
 		if args == "auto" then
 			self.db.global.autoAnnounce = not self.db.global.autoAnnounce
-			self:Print(("Auto Announce has been %s!"):format(GetConfigStatus(self.db.global.autoAnnounce)))
+			self:Print((L["Auto Announce has been %s!"]):format(GetConfigStatus(self.db.global.autoAnnounce)))
 		elseif args == "death" then
 			self.db.global.announceDeath = not self.db.global.announceDeath
-			self:Print(("Death Announcements have been %s!"):format(GetConfigStatus(self.db.global.announceDeath)))
+			self:Print((L["Death Announcements have been %s!"]):format(GetConfigStatus(self.db.global.announceDeath)))
 		elseif args == "adv" then
 			self.db.global.advertise = not self.db.global.advertise
-			self:Print(("Advertisements have been %s!"):format(GetConfigStatus(self.db.global.advertise)))
+			self:Print((L["Advertisements have been %s!"]):format(GetConfigStatus(self.db.global.advertise)))
 		elseif args == "armory" then
 			if GetZoneText():lower() == "mechagon" then
 				local tarPos = C_Map_GetPlayerMapPosition(C_Map_GetBestMapForUnit("player"), "player")
-				CTL:SendChatMessage("NORMAL", "AnnounceRare", ("Armory is located at %s"):format(coordString:format(ceil(tarPos.x * 10000) / 100, ceil(tarPos.y * 10000) / 100)), "CHANNEL", "COMMON", 1)
+				CTL:SendChatMessage("NORMAL", "AnnounceRare", (L["Armory is located at %s %s!"]):format(ceil(tarPos.x * 10000) / 100, ceil(tarPos.y * 10000) / 100), "CHANNEL", "COMMON", 1)
 			else
-				self:Print("You must be in Mechagon to announce armories.")
+				self:Print(L["You must be in Mechagon to announce armories."])
 			end
 		elseif args == "help" or args == "?" then
-			self:Print("Command Line Help")
-			self:Print("|cffffff00/rare|r - Announce rare to general chat.")
-			self:Print("|cffffff00/rare armory|r - Announce Mechagon armory location to general chat.")
-			self:Print("|cffffff00/rare auto|r - Toggle auto announcements.")
-			self:Print("|cffffff00/rare death|r - Toggle death announcements.")
-			self:Print("|cffffff00/rare load|r - Toggle loading announcement.")
-			self:Print("|cffffff00/rare status|r or |cffffff00/rare config|r - Print current configuration.")
-			self:Print("|cffffff00/rare help|r or |cffffff00/rare ?|r - Print this help again.")
+			self:Print(L["Command Line Help"])
+			self:Print(L["|cffffff00/rare|r - Announce rare to general chat."])
+			self:Print(L["|cffffff00/rare armory|r - Announce Mechagon armory location to general chat."])
+			self:Print(L["|cffffff00/rare auto|r - Toggle auto announcements."])
+			self:Print(L["|cffffff00/rare death|r - Toggle death announcements."])
+			self:Print(L["|cffffff00/rare load|r - Toggle loading announcement."])
+			self:Print(L["|cffffff00/rare status|r or |cffffff00/rare config|r - Print current configuration."])
+			self:Print(L["|cffffff00/rare help|r or |cffffff00/rare ?|r - Print this help again."])
 		elseif args == "load" then
 			self.db.global.onLoad = not self.db.global.onLoad
-			self:Print(("Loading message has been %s!"):format(GetConfigStatus(self.db.global.onLoad)))
+			self:Print((L["Loading message has been %s!"]):format(GetConfigStatus(self.db.global.onLoad)))
 		elseif args == "status" or args == "config" then
-			self:Print(("AnnounceRare by Crackpotx v%s"):format(self.version))
-			self:Print("For Help: |cffffff00/rare help|r")
-			self:Print(("Advertisements: %s"):format(GetConfigStatus(self.db.global.advertise)))
-			self:Print(("Automatic Announcements: %s"):format(GetConfigStatus(self.db.global.autoAnnounce)))
-			self:Print(("Death Announcements: %s"):format(GetConfigStatus(self.db.global.announceDeath)))
-			self:Print(("Load Announcement: %s"):format(GetConfigStatus(self.db.global.onLoad)))
+			self:Print((L["AnnounceRare by Crackpotx v%s"]):format(self.version))
+			self:Print(L["For Help: |cffffff00/rare help|r"])
+			self:Print((L["Advertisements: %s"]):format(GetConfigStatus(self.db.global.advertise)))
+			self:Print((L["Automatic Announcements: %s"]):format(GetConfigStatus(self.db.global.autoAnnounce)))
+			self:Print((L["Death Announcements: %s"]):format(GetConfigStatus(self.db.global.announceDeath)))
+			self:Print((L["Load Announcement: %s"]):format(GetConfigStatus(self.db.global.onLoad)))
 		elseif args == "" then
 			local zoneText = GetZoneText()
 			-- only do anything when the player is in mechagon or nazjatar
@@ -169,20 +170,20 @@ function AR:PLAYER_ENTERING_WORLD()
 					-- add it to the filter
 					self.rares[#self.rares + 1] = UnitName("target")
 				elseif not UnitExists("target") then
-					self:Print("You do not have a target.")
+					self:Print(L["You do not have a target."])
 				elseif UnitIsDead("target") then
-					self:Print(format("%s is already dead.", UnitName("target"))) 
+					self:Print(format(L["%s is already dead."], UnitName("target"))) 
 				elseif (tarClass ~= "rare" and tarClass ~= "rareelite") then
-					self:Print(format("%s is not a rare or you have killed it today.", UnitName("target")))
+					self:Print(format(L["%s is not a rare or you have killed it today."], UnitName("target")))
 				end
 			else
-				self:Print("You must be in Mechagon or Nazjatar to use this command.")
+				self:Print(L["You must be in Mechagon or Nazjatar to use this command."])
 			end
 		end
 	end)
 
 	if self.db.global.onLoad == true then
-		self:Print(("AnnounceRare v%s loaded! Please use |cffffff00/rare help|r for commands."):format(GetAddOnMetadata("AnnounceRare", "Version")))
+		self:Print((L["AnnounceRare v%s loaded! Please use |cffffff00/rare help|r for commands."]):format(GetAddOnMetadata("AnnounceRare", "Version")))
 	end
 end
 
