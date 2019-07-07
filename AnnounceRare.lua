@@ -15,6 +15,7 @@ local GetPlayerMapPosition = _G["GetPlayerMapPosition"]
 local GetZoneText = _G["GetZoneText"]
 local SendChatMessage = _G["SendChatMessage"]
 local UnitAffectingCombat = _G["UnitAffectingCombat"]
+local UnitAura = _G["UnitAura"]
 local UnitClassification = _G["UnitClassification"]
 local UnitExists = _G["UnitExists"]
 local UnitHealth = _G["UnitHealth"]
@@ -27,8 +28,8 @@ local format = string.format
 local tostring = tostring
 local pairs = pairs
 
-local messageToSend = L["%s%s (%s/%s %.2f%%) is at %s %s, and %s"]
-local deathMessage = L["%s%s has been slain at %02d:%02d!"]
+local messageToSend = L["%s%s (%s/%s %.2f%%) is at %s %s%s, and %s"]
+local deathMessage = L["%s%s has been slain %sat %02d:%02d!"]
 local defaults = {
 	global = {
 		autoAnnounce = false,
@@ -37,6 +38,17 @@ local defaults = {
 		onLoad = false,
 	}
 }
+
+-- Time Displacement
+local function IsInAltTimeline()
+	for i = 1, 40 do
+		local name = UnitAura("player", i)
+		if name == "Time Displacement" then
+			return true
+		end
+	end
+	return false
+end
 
 local function GetConfigStatus(configVar)
 	return configVar == true and L["|cff00ff00ENABLED|r"] or L["|cffff0000DISABLED|r"]
@@ -71,6 +83,7 @@ local function AnnounceRare()
 		tarHealthPercent,
 		ceil(tarPos.x * 10000) / 100,
 		ceil(tarPos.y * 10000) / 100,
+		IsInAltTimeline() == true and " " .. L["in the alternative timeline"] or "",
 		UnitAffectingCombat("target") == true and L["has been engaged!"] or L["has NOT been engaged!"]
 	), "CHANNEL", "COMMON", 1)
 end
@@ -114,7 +127,13 @@ function AR:COMBAT_LOG_EVENT_UNFILTERED()
 	if subevent == "UNIT_DIED" then
 		if self.db.global.announceDeath == true and #self.rares > 0 and FindInArray(sourceName, self.rares) then
 			local hours, minutes = GetGameTime()
-			CTL:SendChatMessage("NORMAL", "AnnounceRare", deathMessage:format(AR.db.global.advertise == true and "AnnounceRare: " or "", sourceName, hours, minutes), "CHANNEL", "COMMON", 1)
+			CTL:SendChatMessage("NORMAL", "AnnounceRare", deathMessage:format(
+				AR.db.global.advertise == true and "AnnounceRare: " or "",
+				sourceName,
+				IsInAltTimeline() == true and L["in the alternative timeline"] .. " " or "",
+				hours,
+				minutes
+			), "CHANNEL", "COMMON", 1)
 		end
 	end
 end

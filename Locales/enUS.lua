@@ -11,8 +11,8 @@ if not L then return end
 
 L["%s is already dead."] = true
 L["%s is not a rare or you have killed it today."] = true
-L["%s%s (%s/%s %.2f%%) is at %s %s, and %s"] = true
-L["%s%s has been slain at %02d:%02d!"] = true
+L["%s%s (%s/%s %.2f%%) is at %s %s%s, and %s"] = true
+L["%s%s has been slain %sat %02d:%02d!"] = true
 L["Advertisements have been %s!"] = true
 L["Advertisements: %s"] = true
 L["AnnounceRare by Crackpotx v%s"] = true
@@ -31,6 +31,7 @@ L["You must be in Mechagon or Nazjatar to use this command."] = true
 L["You must be in Mechagon to announce armories."] = true
 L["has NOT been engaged!"] = true
 L["has been engaged!"] = true
+L["in the alternative timeline"] = true
 L["|cff00ff00ENABLED|r"] = true
 L["|cffff0000DISABLED|r"] = true
 L["|cffffff00/rare armory|r - Announce Mechagon armory location to general chat."] = true
