@@ -7,9 +7,11 @@ local CTL = assert(ChatThrottleLib, "AnnounceRare requires ChatThrottleLib.")
 local L = LibStub("AceLocale-3.0"):GetLocale("AnnounceRare", false)
 
 -- local api cache
+local C_ChatInfo_GetNumActiveChannels = C_ChatInfo.GetNumActiveChannels
 local C_Map_GetBestMapForUnit = C_Map.GetBestMapForUnit
 local C_Map_GetPlayerMapPosition = C_Map.GetPlayerMapPosition
 local CombatLogGetCurrentEventInfo = _G["CombatLogGetCurrentEventInfo"]
+local GetChannelName = _G["GetChannelName"]
 local GetGameTime = _G["GetGameTime"]
 local GetPlayerMapPosition = _G["GetPlayerMapPosition"]
 local GetZoneText = _G["GetZoneText"]
@@ -24,10 +26,12 @@ local UnitIsDead = _G["UnitIsDead"]
 local UnitName = _G["UnitName"]
 
 local ceil = math.ceil
+local match = string.match
 local format = string.format
 local tostring = tostring
 local pairs = pairs
 
+local outputChannel = "|cffffff00%s|r"
 local messageToSend = L["%s%s (%s/%s %.2f%%) is at %s %s%s, and %s"]
 local deathMessage = L["%s%s has been slain %sat %02d:%02d!"]
 local defaults = {
@@ -36,8 +40,28 @@ local defaults = {
 		advertise = false,
 		announceDeath = true,
 		onLoad = false,
+		output = "channel",
 	}
 }
+
+local function GetGeneralChannelNumber()
+	local numChan = C_ChatInfo_GetNumActiveChannels()
+	if numChan == 0 then
+		return "1"
+	else 
+		for i = 1, numChan do
+			local id, name = GetChannelName(i)
+			if match(name:lower(), "general") then
+				return id
+			end
+		end
+		return "1"
+	end
+end
+
+local function IsValidOutputChannel(chan)
+	return (chan == "general" or chan == "say" or chan == "guild" or chan == "yell" or chan == "party" or chan == "raid") and true or false
+end
 
 -- Time Displacement
 local function IsInAltTimeline()
@@ -85,7 +109,7 @@ local function AnnounceRare()
 		ceil(tarPos.y * 10000) / 100,
 		IsInAltTimeline() == true and " " .. L["in the alternative timeline"] or "",
 		UnitAffectingCombat("target") == true and L["has been engaged!"] or L["has NOT been engaged!"]
-	), "CHANNEL", "COMMON", 1)
+	), AR.db.global.output, "COMMON", AR.db.global.output == "CHANNEL" and GetGeneralChannelNumber() or nil)
 end
 
 local function FindInArray(toFind, arraySearch)
@@ -133,7 +157,7 @@ function AR:COMBAT_LOG_EVENT_UNFILTERED()
 				IsInAltTimeline() == true and L["in the alternative timeline"] .. " " or "",
 				hours,
 				minutes
-			), "CHANNEL", "COMMON", 1)
+			), AR.db.global.output, "COMMON", AR.db.global.output == "CHANNEL" and GetGeneralChannelNumber() or nil)
 		end
 	end
 end
@@ -143,42 +167,65 @@ function AR:PLAYER_ENTERING_WORLD()
 
 	-- chat command using aceconsole-3.0
 	self:RegisterChatCommand("rare", function(args)
-		if args == "auto" then
+		local key = self:GetArgs(args, 1)
+		if key == "auto" then
 			self.db.global.autoAnnounce = not self.db.global.autoAnnounce
 			self:Print((L["Auto Announce has been %s!"]):format(GetConfigStatus(self.db.global.autoAnnounce)))
-		elseif args == "death" then
+		elseif key == "death" then
 			self.db.global.announceDeath = not self.db.global.announceDeath
 			self:Print((L["Death Announcements have been %s!"]):format(GetConfigStatus(self.db.global.announceDeath)))
-		elseif args == "adv" then
+		elseif key == "adv" then
 			self.db.global.advertise = not self.db.global.advertise
 			self:Print((L["Advertisements have been %s!"]):format(GetConfigStatus(self.db.global.advertise)))
-		elseif args == "armory" then
+		elseif key == "armory" then
 			if GetZoneText():lower() == "mechagon" then
 				local tarPos = C_Map_GetPlayerMapPosition(C_Map_GetBestMapForUnit("player"), "player")
 				CTL:SendChatMessage("NORMAL", "AnnounceRare", (L["Armory is located at %s %s!"]):format(ceil(tarPos.x * 10000) / 100, ceil(tarPos.y * 10000) / 100), "CHANNEL", "COMMON", 1)
 			else
 				self:Print(L["You must be in Mechagon to announce armories."])
 			end
-		elseif args == "help" or args == "?" then
+		elseif key == "help" or key == "?" then
 			self:Print(L["Command Line Help"])
 			self:Print(L["|cffffff00/rare|r - Announce rare to general chat."])
 			self:Print(L["|cffffff00/rare armory|r - Announce Mechagon armory location to general chat."])
 			self:Print(L["|cffffff00/rare auto|r - Toggle auto announcements."])
 			self:Print(L["|cffffff00/rare death|r - Toggle death announcements."])
 			self:Print(L["|cffffff00/rare load|r - Toggle loading announcement."])
+			self:Print(L["|cffffff00/rare output (general|say|yell|guild|party|raid)|r - Change output channel."])
 			self:Print(L["|cffffff00/rare status|r or |cffffff00/rare config|r - Print current configuration."])
 			self:Print(L["|cffffff00/rare help|r or |cffffff00/rare ?|r - Print this help again."])
-		elseif args == "load" then
+		elseif key == "load" then
 			self.db.global.onLoad = not self.db.global.onLoad
 			self:Print((L["Loading message has been %s!"]):format(GetConfigStatus(self.db.global.onLoad)))
-		elseif args == "status" or args == "config" then
+		elseif key == "status" or key == "config" then
 			self:Print((L["AnnounceRare by Crackpotx v%s"]):format(self.version))
 			self:Print(L["For Help: |cffffff00/rare help|r"])
 			self:Print((L["Advertisements: %s"]):format(GetConfigStatus(self.db.global.advertise)))
 			self:Print((L["Automatic Announcements: %s"]):format(GetConfigStatus(self.db.global.autoAnnounce)))
 			self:Print((L["Death Announcements: %s"]):format(GetConfigStatus(self.db.global.announceDeath)))
 			self:Print((L["Load Announcement: %s"]):format(GetConfigStatus(self.db.global.onLoad)))
-		elseif args == "" then
+			self:Print((L["Output Channel: |cffffff00%s|r"]):format(self.db.global.output == "channel" and "GENERAL" or self.db.global.output))
+		elseif key == "output" then
+			local _, value = self:GetArgs(args, 2)
+			value = value:lower()
+			if value == "" or value == nil then
+				self:Print(L["You must provide an output channel for the announcements."])
+			else
+				if not IsValidOutputChannel(value) then
+					self:Print((L["Valid Outputs: %s, %s, %s, %s, %s, %s"]):format(
+						outputChannel:format(L["general"]),
+						outputChannel:format(L["say"]),
+						outputChannel:format(L["yell"]),
+						outputChannel:format(L["guild"]),
+						outputChannel:format(L["party"]),
+						outputChannel:format(L["raid"])
+					))
+				else
+					self.db.global.output = value ~= "general" and value:upper() or "CHANNEL"
+					self:Print((L["Changed output to %s!"]):format(outputChannel:format(value:upper())))
+				end
+			end
+		elseif key == "" then
 			local zoneText = GetZoneText()
 			-- only do anything when the player is in mechagon or nazjatar
 			if zoneText:lower() == "mechagon" or zoneText:lower() == "nazjatar" then
