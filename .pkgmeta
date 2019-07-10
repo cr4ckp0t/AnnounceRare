@@ -7,15 +7,17 @@ externals:
 		url: https://repos.wowace.com/wow/libstub/trunk
 	Libraries\CallbackHandler-1.0:
 		url: https://repos.wowace.com/wow/callbackhandler/trunk/CallbackHandler-1.0
-	Libraries\AceAddon-3.0:
+	Libraries\Ace3\AceAddon-3.0:
 		url: https://repos.wowace.com/wow/ace3/trunk/AceAddon-3.0
-	Libraries\AceConsole-3.0:
+	Libraries\Ace3\AceComm-3.0:
+		url: https://repos.wowace.com/wow/ace3/trunk/AceComm-3.0
+	Libraries\Ace3\AceConsole-3.0:
 		url: https://repos.wowace.com/wow/ace3/trunk/AceConsole-3.0
-	Libraries\AceDB-3.0:
+	Libraries\Ace3\AceDB-3.0:
 		url: https://repos.wowace.com/wow/ace3/trunk/AceDB-3.0
-	Libraries\AceEvent-3.0:
+	Libraries\Ace3\AceEvent-3.0:
 		url: https://repos.wowace.com/wow/ace3/trunk/AceEvent-3.0
-	Libraries\AceLocale-3.0:
+	Libraries\Ace3\AceLocale-3.0:
 		url: https://repos.wowace.com/wow/ace3/trunk/AceLocale-3.0
 	Libraries\ChatThrottleLib:
 		url: https://repos.curseforge.com/wow/chatthrottlelib/trunk

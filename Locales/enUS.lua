@@ -24,6 +24,7 @@ L["For Help: |cffffff00/rare help|r"] = true
 L["Load Announcement: %s"] = true
 L["Loading message has been %s!"] = true
 L["Output Channel: |cffffff00%s|r"] = true
+L["Unable to determine your general channel number."] = true
 L["Valid Outputs: %s, %s, %s, %s, %s, %s"] = true
 L["You do not have a target."] = true
 L["You must be in Mechagon or Nazjatar to use this command."] = true

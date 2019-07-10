@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Announce Rare (BFA 8.2) By Crackpotx (US, Lightbringer)
 -------------------------------------------------------------------------------
-local AR = LibStub("AceAddon-3.0"):NewAddon("AnnounceRare", "AceConsole-3.0", "AceEvent-3.0")
+local AR = LibStub("AceAddon-3.0"):NewAddon("AnnounceRare", "AceComm-3.0", "AceConsole-3.0", "AceEvent-3.0")
 AR.version = GetAddOnMetadata("AnnounceRare", "Version")
 local CTL = assert(ChatThrottleLib, "AnnounceRare requires ChatThrottleLib.")
 local L = LibStub("AceLocale-3.0"):GetLocale("AnnounceRare", false)
@@ -40,22 +40,22 @@ local defaults = {
 		advertise = false,
 		announceDeath = true,
 		onLoad = false,
-		output = "channel",
+		output = "CHANNEL",
 	}
 }
 
 local function GetGeneralChannelNumber()
 	local numChan = C_ChatInfo_GetNumActiveChannels()
 	if numChan == 0 then
-		return "1"
+		return false
 	else 
 		for i = 1, numChan do
 			local id, name = GetChannelName(i)
-			if match(name:lower(), "general") then
+			if match(name:lower(), L["general"]) then
 				return id
 			end
 		end
-		return "1"
+		return false
 	end
 end
 
@@ -99,6 +99,10 @@ local function AnnounceRare()
 	local tarHealthPercent = (tarHealth / tarHealthMax) * 100
 	local tarPos = C_Map_GetPlayerMapPosition(C_Map_GetBestMapForUnit("player"), "player")
 
+	--[[local genChannel = GetGeneralChannelNumber()
+	if not genChannel then
+		self:Print(L["Unable to determine your general channel number."])
+	else]]
 	CTL:SendChatMessage("NORMAL", "AnnounceRare", messageToSend:format(
 		AR.db.global.advertise == true and "AnnounceRare: " or "",
 		UnitName("target"),
@@ -109,7 +113,8 @@ local function AnnounceRare()
 		ceil(tarPos.y * 10000) / 100,
 		IsInAltTimeline() == true and " " .. L["in the alternative timeline"] or "",
 		UnitAffectingCombat("target") == true and L["has been engaged!"] or L["has NOT been engaged!"]
-	), AR.db.global.output, "COMMON", AR.db.global.output == "CHANNEL" and GetGeneralChannelNumber() or nil)
+	), AR.db.global.output:upper(), "COMMON", AR.db.global.output:upper() == "CHANNEL" and 1 or nil)
+	--end
 end
 
 local function FindInArray(toFind, arraySearch)
@@ -151,13 +156,19 @@ function AR:COMBAT_LOG_EVENT_UNFILTERED()
 	if subevent == "UNIT_DIED" then
 		if self.db.global.announceDeath == true and #self.rares > 0 and FindInArray(sourceName, self.rares) then
 			local hours, minutes = GetGameTime()
+
+			--[[local genChannel = GetGeneralChannelNumber()
+			if not genChannel then
+				self:Print(L["Unable to determine your general channel number."])
+			else]]
 			CTL:SendChatMessage("NORMAL", "AnnounceRare", deathMessage:format(
 				AR.db.global.advertise == true and "AnnounceRare: " or "",
 				sourceName,
 				IsInAltTimeline() == true and L["in the alternative timeline"] .. " " or "",
 				hours,
 				minutes
-			), AR.db.global.output, "COMMON", AR.db.global.output == "CHANNEL" and GetGeneralChannelNumber() or nil)
+			), AR.db.global.output:upper(), "COMMON", AR.db.global.output:upper() == "CHANNEL" and 1 or nil)
+			--end
 		end
 	end
 end
