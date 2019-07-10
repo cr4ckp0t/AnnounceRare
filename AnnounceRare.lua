@@ -246,7 +246,7 @@ function AR:PLAYER_ENTERING_WORLD()
 					self:Print((L["Changed output to %s!"]):format(outputChannel:format(value:upper())))
 				end
 			end
-		elseif key == "" then
+		else 
 			local zoneText = GetZoneText()
 			local tarClass = UnitClassification("target")
 			-- only do anything when the player is in mechagon or nazjatar
