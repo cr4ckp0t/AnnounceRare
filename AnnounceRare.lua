@@ -22,16 +22,20 @@ local UnitAffectingCombat = _G["UnitAffectingCombat"]
 local UnitAura = _G["UnitAura"]
 local UnitClassification = _G["UnitClassification"]
 local UnitExists = _G["UnitExists"]
+local UnitGUID = _G["UnitGUID"]
 local UnitHealth = _G["UnitHealth"]
 local UnitHealthMax = _G["UnitHealthMax"]
 local UnitIsDead = _G["UnitIsDead"]
 local UnitName = _G["UnitName"]
 
+local band = bit.band
 local ceil = math.ceil
 local match = string.match
 local format = string.format
-local tostring = tostring
 local pairs = pairs
+local strsplit = strsplit
+local tonumber = tonumber
+local tostring = tostring
 
 local channelFormat = "%s - %s"
 local channelRUFormat = "%s: %s"
@@ -47,6 +51,50 @@ local defaults = {
 		output = "CHANNEL",
 	}
 }
+
+local rares = {
+	[151884] = "Fungarian Furor", -- Fungarian Furor
+    [135497] = "Fungarian Furor", -- Fungarian Furor
+    [151625] = "The Scrap King", -- The Scrap King
+    [151623] = "The Scrap King (Mounted)", -- The Scrap King (Mounted)
+    [152569] = "Crazed Trogg (Green)", -- Crazed Trogg (Green)
+    [152570] = "Crazed Trogg (Blue)", -- Crazed Trogg (Blue)
+	[149847] = "Crazed Trogg (Orange)", -- Crazed Trogg (Orange)
+}
+
+local function UpdateDuplicates(id)
+	if id == 151884 then
+		AR.rares[#AR.rares + 1] = 135497
+	elseif id == 135497 then
+		AR.rares[#AR.rares + 1] = 151884
+	elseif id == 151625 then
+		AR.rares[#AR.rares + 1] = 151623
+	elseif id == 151623 then
+		AR.rares[#AR.rares + 1] = 151625
+	elseif id == 152569 then
+		AR.rares[#AR.rares + 1] = 152570
+		AR.rares[#AR.rares + 1] = 149847
+	elseif id == 152570 then
+		AR.rares[#AR.rares + 1] = 152569
+		AR.rares[#AR.rares + 1] = 149847
+	elseif id == 149847 then
+		AR.rares[#AR.rares + 1] = 152569
+		AR.rares[#AR.rares + 1] = 152570
+	end
+end
+
+local function GetTargetId()
+	local guid = UnitGUID("target")
+	if guid == nil then return nil end
+	local unitType, _, _, _, _, unitId = strsplit("-", guid);
+	return (unitType == "Creature" or UnitType == "Vehicle") and tonumber(unitId) or nil
+end
+
+local function GetNPCGUID(guid)
+	if guid == nil then return nil end
+	local unitType, _, _, _, _, unitId = strsplit("-", guid);
+	return (unitType == "Creature" or UnitType == "Vehicle") and tonumber(unitId) or nil
+end
 
 local function GetGeneralChannelNumber()
 	local zoneText = GetZoneText()
@@ -84,24 +132,36 @@ local function FormatNumber(n)
     end
 end
 
+local function FindInArray(toFind, arraySearch)
+	if #arraySearch == 0 then return false end
+	for _, value in pairs(arraySearch) do
+		if value == toFind then
+			return true
+		end
+	end
+	return false
+end
+
 local function DecRound(num, decPlaces)
 	return format("%." .. (decPlaces or 0) .. "f", num)
 end
 
 local function AnnounceRare()
 	-- player target is a rare
-	local tarName, tarCombat = UnitName("target"), UnitAffectingCombat("target")
+	local tarId, tarCombat = GetTargetId(), UnitAffectingCombat("target")
 	local tarHealth, tarHealthMax = UnitHealth("target"), UnitHealthMax("target")
 	local tarHealthPercent = (tarHealth / tarHealthMax) * 100
 	local tarPos = C_Map_GetPlayerMapPosition(C_Map_GetBestMapForUnit("player"), "player")
 	local genId = GetGeneralChannelNumber()
 
-	if AR.db.global.output:upper() == "CHANNEL" and not genId then
-		self:Print(L["Unable to determine your general channel number."])
+	if tarId == nil then
+		AR:Print(L["Unable to determine target's GUID."])
+	elseif AR.db.global.output:upper() == "CHANNEL" and not genId then
+		AR:Print(L["Unable to determine your general channel number."])
 	else
 		CTL:SendChatMessage("NORMAL", "AnnounceRare", messageToSend:format(
 			AR.db.global.advertise == true and "AnnounceRare: " or "",
-			UnitName("target"),
+			rares[tarId] ~= nil and rares[tarId] or UnitName("target"),
 			FormatNumber(tarHealth),
 			FormatNumber(tarHealthMax),
 			tarHealthPercent,
@@ -111,16 +171,6 @@ local function AnnounceRare()
 			UnitAffectingCombat("target") == true and L["has been engaged!"] or L["has NOT been engaged!"]
 		), AR.db.global.output:upper(), nil, AR.db.global.output:upper() == "CHANNEL" and genId or nil)
 	end
-end
-
-local function FindInArray(toFind, arraySearch)
-	if #arraySearch == 0 then return false end
-	for _, value in pairs(arraySearch) do
-		if value == toFind then
-			return true
-		end
-	end
-	return false
 end
 
 local function ValidTarget()
@@ -139,7 +189,12 @@ local function ValidTarget()
 				if UnitIsDead("target") then
 					return false
 				else
-					return (not FindInArray(UnitName("target"), AR.rares)) and true or false
+					local tarId = GetNPCGUID(UnitGUID("target"))
+					if tarId == nil then
+						return false
+					else 
+						return (not FindInArray(tarId, AR.rares)) and true or false
+					end
 				end
 			end
 		end
@@ -152,32 +207,35 @@ end
 
 function AR:PLAYER_TARGET_CHANGED()
 	if self.db.global.autoAnnounce and ValidTarget() then
-		-- announce the rare
-		AnnounceRare()
-
-		-- add it to the filter
-		self.rares[#self.rares + 1] = UnitName("target")
+		local tarId = GetTargetId()
+		if tarId ~= nil then
+			AnnounceRare()
+			self.rares[#self.rares + 1] = tarId
+			UpdateDuplicates(tarId)
+		end
 	end
 end
 
 function AR:COMBAT_LOG_EVENT_UNFILTERED()
-	local _, subevent, _, _, _, _, _, _, sourceName = CombatLogGetCurrentEventInfo()
-
+	local _, subevent, _, _, _, sourceFlags, _, srcGuid, srcName = CombatLogGetCurrentEventInfo()
 	if subevent == "UNIT_DIED" then
-		if self.db.global.announceDeath == true and #self.rares > 0 and FindInArray(sourceName, self.rares) then
+		local id = GetNPCGUID(srcGuid) 
+		if id ~= 151623 and self.db.global.announceDeath == true and #self.rares > 0 and FindInArray(id, self.rares) then
 			local hours, minutes = GetGameTime()
 			local genId = GetGeneralChannelNumber()
 
-			if AR.db.global.output:upper() == "CHANNEL" and not genId then
+			if id == nil then
+				self:Print(L["Unable to determine the NPC's GUID."])
+			elseif self.db.global.output:upper() == "CHANNEL" and not genId then
 				self:Print(L["Unable to determine your general channel number."])
 			else
 				CTL:SendChatMessage("NORMAL", "AnnounceRare", deathMessage:format(
-					AR.db.global.advertise == true and "AnnounceRare: " or "",
-					sourceName,
+					self.db.global.advertise == true and "AnnounceRare: " or "",
+					rares[id] ~= nil and rares[id] or srcName,
 					IsInAltTimeline() == true and L["in the alternative timeline"] .. " " or "",
 					hours,
 					minutes
-				), AR.db.global.output:upper(), nil, AR.db.global.output:upper() == "CHANNEL" and genId or nil)
+				), self.db.global.output:upper(), nil, self.db.global.output:upper() == "CHANNEL" and genId or nil)
 			end
 		end
 	end
@@ -250,10 +308,9 @@ function AR:PLAYER_ENTERING_WORLD()
 			local zoneText = GetZoneText()
 			local tarClass = UnitClassification("target")
 			-- only do anything when the player is in mechagon or nazjatar
-			if zoneText:lower() == "mechagon" or zoneText:lower() == "nazjatar" then
+			if zoneText:match("Mechagon") or zoneText:match("Nazjatar") then
 				if ValidTarget() then
 					AnnounceRare()
-					self.rares[#self.rares + 1] = UnitName("target")
 				elseif not UnitExists("target") then
 					self:Print(L["You do not have a target."])
 				elseif UnitIsDead("target") then
@@ -278,4 +335,3 @@ function AR:OnInitialize()
 	self:RegisterEvent("PLAYER_TARGET_CHANGED")
 	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 end
-
