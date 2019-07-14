@@ -9,11 +9,13 @@ local L = LibStub("AceLocale-3.0"):GetLocale("AnnounceRare", false)
 -- local api cache
 local C_ChatInfo_GetNumActiveChannels = C_ChatInfo.GetNumActiveChannels
 local C_Map_GetBestMapForUnit = C_Map.GetBestMapForUnit
+local C_Map_GetMapInfo = C_Map.GetMapInfo
 local C_Map_GetPlayerMapPosition = C_Map.GetPlayerMapPosition
 local CombatLogGetCurrentEventInfo = _G["CombatLogGetCurrentEventInfo"]
 local EnumerateServerChannels = _G["EnumerateServerChannels"]
 local GetChannelName = _G["GetChannelName"]
 local GetGameTime = _G["GetGameTime"]
+local GetItemInfo = _G["GetItemInfo"]
 local GetLocale = _G["GetLocale"]
 local GetPlayerMapPosition = _G["GetPlayerMapPosition"]
 local GetZoneText = _G["GetZoneText"]
@@ -44,6 +46,7 @@ local messageToSend = L["%s%s (%s/%s %.2f%%) is at %s %s%s, and %s"]
 local deathMessage = L["%s%s has been slain %sat %02d:%02d!"]
 local defaults = {
 	global = {
+		armory = true,
 		autoAnnounce = false,
 		advertise = false,
 		announceDeath = true,
@@ -178,26 +181,31 @@ local function ValidTarget()
 	if not UnitExists("target") then
 		return false
 	else
-		local zoneText = GetZoneText()
-		if not zoneText:match("Mechagon") and not zoneText:match("Nazjatar") then
+		local tarClass = UnitClassification("target")
+		if tarClass ~= "rare" and tarClass ~= "rareelite" then
 			return false
 		else
-			local tarClass = UnitClassification("target")
-			if tarClass ~= "rare" and tarClass ~= "rareelite" then
+			if UnitIsDead("target") then
 				return false
 			else
-				if UnitIsDead("target") then
+				local tarId = GetNPCGUID(UnitGUID("target"))
+				if tarId == nil then
 					return false
-				else
-					local tarId = GetNPCGUID(UnitGUID("target"))
-					if tarId == nil then
-						return false
-					else 
-						return (not FindInArray(tarId, AR.rares)) and true or false
-					end
+				else 
+					return (not FindInArray(tarId, AR.rares)) and true or false
 				end
 			end
 		end
+	end
+end
+
+function AR:CheckZone(...)
+	local mapId = C_Map_GetBestMapForUnit("player")
+	local mapInfo = C_Map_GetMapInfo(mapId)
+	if (mapId == 1355 or mapInfo["parentMapID"] == 1355) or (mapId == 1462 or mapInfo["parentMapID"] == 1462) and self.correctZone == false then
+		self.correctZone = true
+	elseif ((mapId ~= 1355 and mapInfo["parentMapID"] ~= 1355 and mapId ~= 1462 and mapInfo["parentMapID"] ~= 1462) or mapId == nil) and self.correctZone == true then
+		self.correctZone = false
 	end
 end
 
@@ -206,7 +214,7 @@ function AR:Print(msg)
 end
 
 function AR:PLAYER_TARGET_CHANGED()
-	if self.db.global.autoAnnounce and ValidTarget() then
+	if self.db.global.autoAnnounce and self.correctZone and ValidTarget() then
 		local tarId = GetTargetId()
 		if tarId ~= nil then
 			AnnounceRare()
@@ -218,7 +226,7 @@ end
 
 function AR:COMBAT_LOG_EVENT_UNFILTERED()
 	local _, subevent, _, _, _, sourceFlags, _, srcGuid, srcName = CombatLogGetCurrentEventInfo()
-	if subevent == "UNIT_DIED" then
+	if subevent == "UNIT_DIED" and self.correctZone then
 		local id = GetNPCGUID(srcGuid) 
 		if id ~= 151623 and self.db.global.announceDeath == true and #self.rares > 0 and FindInArray(id, self.rares) then
 			local hours, minutes = GetGameTime()
@@ -241,8 +249,24 @@ function AR:COMBAT_LOG_EVENT_UNFILTERED()
 	end
 end
 
+function AR:UPDATE_MOUSEOVER_UNIT(...)
+	if self.correctZone then
+		local ttItemName = GameTooltip:GetUnit()
+		local armoryName, gravName  = GetItemInfo(169868)
+		if self.db.global.armory and ttItemName == armoryName and self.lastArmory <= time() - 600 then
+			local genId = GetGeneralChannelNumber()
+			local tarPos = C_Map_GetPlayerMapPosition(C_Map_GetBestMapForUnit("player"), "player")
+			CTL:SendChatMessage("NORMAL", "AnnounceRare", (L["Armory is located at %s %s!"]):format(ceil(tarPos.x * 10000) / 100, ceil(tarPos.y * 10000) / 100), self.db.global.output:upper(), nil, self.db.global.output:upper() == "CHANNEL" and genId or nil)
+			self.lastArmory = time()
+		end
+	end
+end
+
 function AR:PLAYER_ENTERING_WORLD()
 	self.rares = {}
+	self.correctZone = false
+	self.lastArmory = 0
+	self:CheckZone()
 
 	-- chat command using aceconsole-3.0
 	self:RegisterChatCommand("rare", function(args)
@@ -257,16 +281,12 @@ function AR:PLAYER_ENTERING_WORLD()
 			self.db.global.advertise = not self.db.global.advertise
 			self:Print((L["Advertisements have been %s!"]):format(GetConfigStatus(self.db.global.advertise)))
 		elseif key == "armory" then
-			if GetZoneText():lower() == "mechagon" then
-				local tarPos = C_Map_GetPlayerMapPosition(C_Map_GetBestMapForUnit("player"), "player")
-				CTL:SendChatMessage("NORMAL", "AnnounceRare", (L["Armory is located at %s %s!"]):format(ceil(tarPos.x * 10000) / 100, ceil(tarPos.y * 10000) / 100), "CHANNEL", "COMMON", 1)
-			else
-				self:Print(L["You must be in Mechagon to announce armories."])
-			end
+			self.db.global.armory = not self.db.global.armory
+			self.Print((L["Armory announcements have been %s!"]):format(GetConfigStatus(self.db.global.armory)))
 		elseif key == "help" or key == "?" then
 			self:Print(L["Command Line Help"])
 			self:Print(L["|cffffff00/rare|r - Announce rare to general chat."])
-			self:Print(L["|cffffff00/rare armory|r - Announce Mechagon armory location to general chat."])
+			self:Print(L["|cffffff00/rare armory|r - Toggle armory announcements."])
 			self:Print(L["|cffffff00/rare auto|r - Toggle auto announcements."])
 			self:Print(L["|cffffff00/rare death|r - Toggle death announcements."])
 			self:Print(L["|cffffff00/rare load|r - Toggle loading announcement."])
@@ -280,6 +300,7 @@ function AR:PLAYER_ENTERING_WORLD()
 			self:Print((L["AnnounceRare by Crackpotx v%s"]):format(self.version))
 			self:Print(L["For Help: |cffffff00/rare help|r"])
 			self:Print((L["Advertisements: %s"]):format(GetConfigStatus(self.db.global.advertise)))
+			self:Print((L["Armory Announcements: %s"]):format(GetConfigStatus(self.db.global.armory)))
 			self:Print((L["Automatic Announcements: %s"]):format(GetConfigStatus(self.db.global.autoAnnounce)))
 			self:Print((L["Death Announcements: %s"]):format(GetConfigStatus(self.db.global.announceDeath)))
 			self:Print((L["Load Announcement: %s"]):format(GetConfigStatus(self.db.global.onLoad)))
@@ -308,7 +329,7 @@ function AR:PLAYER_ENTERING_WORLD()
 			local zoneText = GetZoneText()
 			local tarClass = UnitClassification("target")
 			-- only do anything when the player is in mechagon or nazjatar
-			if zoneText:match("Mechagon") or zoneText:match("Nazjatar") then
+			if self.correctZone then
 				if ValidTarget() then
 					AnnounceRare()
 				elseif not UnitExists("target") then
@@ -333,5 +354,8 @@ function AR:OnInitialize()
 	self.db = LibStub("AceDB-3.0"):New("AnnounceRareDB", defaults)
 	self:RegisterEvent("PLAYER_ENTERING_WORLD")
 	self:RegisterEvent("PLAYER_TARGET_CHANGED")
+	self:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
+	self:RegisterEvent("ZONE_CHANGED", function() AR:CheckZone() end)
+	self:RegisterEvent("ZONE_CHANGED_NEW_AREA", function() AR:CheckZone() end)
 	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 end
