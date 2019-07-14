@@ -201,11 +201,15 @@ end
 
 function AR:CheckZone(...)
 	local mapId = C_Map_GetBestMapForUnit("player")
-	local mapInfo = C_Map_GetMapInfo(mapId)
-	if (mapId == 1355 or mapInfo["parentMapID"] == 1355) or (mapId == 1462 or mapInfo["parentMapID"] == 1462) and self.correctZone == false then
-		self.correctZone = true
-	elseif ((mapId ~= 1355 and mapInfo["parentMapID"] ~= 1355 and mapId ~= 1462 and mapInfo["parentMapID"] ~= 1462) or mapId == nil) and self.correctZone == true then
+	if mapId == nil then
 		self.correctZone = false
+	else
+		local mapInfo = C_Map_GetMapInfo(mapId)
+		if (mapId == 1355 or mapInfo["parentMapID"] == 1355) or (mapId == 1462 or mapInfo["parentMapID"] == 1462) and self.correctZone == false then
+			self.correctZone = true
+		elseif ((mapId ~= 1355 and mapInfo["parentMapID"] ~= 1355 and mapId ~= 1462 and mapInfo["parentMapID"] ~= 1462) or mapId == nil) and self.correctZone == true then
+			self.correctZone = false
+		end
 	end
 end
 
