@@ -19,6 +19,7 @@ local GetItemInfo = _G["GetItemInfo"]
 local GetLocale = _G["GetLocale"]
 local GetPlayerMapPosition = _G["GetPlayerMapPosition"]
 local GetZoneText = _G["GetZoneText"]
+local IsAddOnLoaded = _G["IsAddOnLoaded"]
 local SendChatMessage = _G["SendChatMessage"]
 local UnitAffectingCombat = _G["UnitAffectingCombat"]
 local UnitAura = _G["UnitAura"]
@@ -50,8 +51,10 @@ local defaults = {
 		autoAnnounce = false,
 		advertise = false,
 		announceDeath = true,
+		drill = true,
 		onLoad = false,
 		output = "CHANNEL",
+		tomtom = true,
 	}
 }
 
@@ -63,6 +66,15 @@ local rares = {
     [152569] = "Crazed Trogg (Green)", -- Crazed Trogg (Green)
     [152570] = "Crazed Trogg (Blue)", -- Crazed Trogg (Blue)
 	[149847] = "Crazed Trogg (Orange)", -- Crazed Trogg (Orange)
+
+	-- for the drills
+	[153206] = "Ol' Big Tusk",
+	[150342] = "Arachnoid Harvester (Alt Time)",
+	[154701] = "Gorged Gear-Cruncher",
+	[154739] = "Caustic Mechaslime",
+	[152113] = "The Kleptoboss",
+	[153200] = "Boilburn",
+	[153205] = "Gemicide",
 }
 
 local function UpdateDuplicates(id)
@@ -176,7 +188,7 @@ local function AnnounceRare()
 	end
 end
 
-local function ValidTarget()
+local function ValidTarget(cmdRun)
 	-- if no target, then fail
 	if not UnitExists("target") then
 		return false
@@ -192,11 +204,38 @@ local function ValidTarget()
 				if tarId == nil then
 					return false
 				else 
-					return (not FindInArray(tarId, AR.rares)) and true or false
+					return (not cmdRun and not FindInArray(tarId, AR.rares)) and true or false
 				end
 			end
 		end
 	end
+end
+
+function AR:CreateWaypoint(x, y, name)
+	if not TomTom then
+		self:Print(L["You must have TomTom installed to use waypoints."])
+		return
+	elseif not self.db.global.tomtom then
+		return
+	end
+	if self.lastWaypoint ~= false then
+		TomTom:RemoveWaypoint(self.lastWaypoint)
+	end
+
+	self.lastWaypoint = TomTom:AddWaypoint(C_Map_GetBestMapForUnit("player"), x / 100, y / 100, {
+		title = name,
+		persistent = false,
+		minimap = true,
+		world = true
+	})
+
+	-- create an auto expire timer
+	if self.tomtomExpire ~= false then self.tomtomExpire:Cancel() end
+	self.tomtomExpire = C_Timer.NewTimer(120, function()
+		if AR.lastWaypoint ~= nil and AR.lastWaypoint ~= false then
+			TomTom:RemoveWaypoint(AR.lastWaypoint)
+		end
+	end)
 end
 
 function AR:CheckZone(...)
@@ -218,7 +257,7 @@ function AR:Print(msg)
 end
 
 function AR:PLAYER_TARGET_CHANGED()
-	if self.db.global.autoAnnounce and self.correctZone and ValidTarget() then
+	if self.db.global.autoAnnounce and self.correctZone and ValidTarget(false) then
 		local tarId = GetTargetId()
 		if tarId ~= nil then
 			AnnounceRare()
@@ -256,21 +295,70 @@ end
 function AR:UPDATE_MOUSEOVER_UNIT(...)
 	if self.correctZone then
 		local ttItemName = GameTooltip:GetUnit()
-		local armoryName, gravName  = GetItemInfo(169868)
-		if self.db.global.armory and ttItemName == armoryName and self.lastArmory <= time() - 600 then
+		local armoryName = GetItemInfo(169868)
+		if self.db.global.armory and (ttItemName == "Broken Rustbolt Armory" or ttItemName == armoryName) and self.lastArmory <= time() - 600 then
 			local genId = GetGeneralChannelNumber()
 			local tarPos = C_Map_GetPlayerMapPosition(C_Map_GetBestMapForUnit("player"), "player")
-			CTL:SendChatMessage("NORMAL", "AnnounceRare", (L["Armory is located at %s %s!"]):format(ceil(tarPos.x * 10000) / 100, ceil(tarPos.y * 10000) / 100), self.db.global.output:upper(), nil, self.db.global.output:upper() == "CHANNEL" and genId or nil)
+			CTL:SendChatMessage("NORMAL", "AnnounceRare", (L["%sArmory is located at %s %s!"]):format(ttItemName == "Broken Rustbolt Armory" and L["Broken"] .. " " or "", ceil(tarPos.x * 10000) / 100, ceil(tarPos.y * 10000) / 100), self.db.global.output:upper(), nil, self.db.global.output:upper() == "CHANNEL" and genId or nil)
 			self.lastArmory = time()
 		end
 	end
 end
 
+function AR:CHAT_MSG_MONSTER_EMOTE(msg, ...)
+	if self.db.global.drill and self.correctZone and msg:match("DR-") then
+		local _, _, drill = strsplit(" ", msg)
+		local x, y, rareName
+		if drill == "DR-TR28" then
+			x, y = 56.25, 36.25
+			rareName = "Ol' Big Tusk"
+		elseif drill == "DR-TR35" then
+			x, y = 63, 25.75
+			rareName = "Arachnoid Harvester (Alt Time)"
+		elseif drill == "DR-CC61" then
+			x, y = 72.71, 53.93
+			rareName = "Gorged Gear-Cruncher"
+		elseif drill == "DR-CC73" then
+			x, y = 66.50, 58.85
+			rareName = "Caustic Mechaslime"
+		elseif drill == "DR-CC88" then
+			x, y = 68.40, 48
+			rareName = "The Kleptoboss"
+		elseif drill == "DR-JD41" then
+			x, y = 51.25, 50.20
+			rareName = "Boilburn"
+		elseif drill == "DR-JD99" then
+			x, y = 59.75, 67.25
+			rareName = "Gemicide"
+		else
+			return
+		end
+
+		CTL:SendChatMessage("NORMAL", "AnnounceRare", (L["%s (%s) is up at %s %s."]):format(
+			drill,
+			rareName,
+			x,
+			y	
+		), self.db.global.output:upper(), nil, self.db.global.output:upper() == "CHANNEL" and genId or nil)
+		
+		-- create waypoint
+		if self.db.global.tomtom and self.tomtom then
+			self:CreateWaypoint(x, y, ("%s: %s"):format(drill, rareName))
+		end
+	end
+end
+
 function AR:PLAYER_ENTERING_WORLD()
+	-- init some stuff
 	self.rares = {}
 	self.correctZone = false
 	self.lastArmory = 0
 	self:CheckZone()
+
+	-- tomtom waypoint settings
+	self.tomtom = IsAddOnLoaded("TomTom")
+	self.lastWaypoint = false
+	self.tomtomExpire = false
 
 	-- chat command using aceconsole-3.0
 	self:RegisterChatCommand("rare", function(args)
@@ -286,20 +374,29 @@ function AR:PLAYER_ENTERING_WORLD()
 			self:Print((L["Advertisements have been %s!"]):format(GetConfigStatus(self.db.global.advertise)))
 		elseif key == "armory" then
 			self.db.global.armory = not self.db.global.armory
-			self.Print((L["Armory announcements have been %s!"]):format(GetConfigStatus(self.db.global.armory)))
+			self:Print((L["Armory announcements have been %s!"]):format(GetConfigStatus(self.db.global.armory)))
+		--[[elseif key == "drill" then
+			self.db.global.drill = not self.db.global.drill
+			self:Print((L["Drill announcements have been %s!"]):format(GetConfigStatus(self.db.global.drill)))]]
 		elseif key == "help" or key == "?" then
 			self:Print(L["Command Line Help"])
 			self:Print(L["|cffffff00/rare|r - Announce rare to general chat."])
 			self:Print(L["|cffffff00/rare armory|r - Toggle armory announcements."])
 			self:Print(L["|cffffff00/rare auto|r - Toggle auto announcements."])
 			self:Print(L["|cffffff00/rare death|r - Toggle death announcements."])
+			--self:Print(L["|cffffff00/rare drill|r - Toggle drill announcements."])
 			self:Print(L["|cffffff00/rare load|r - Toggle loading announcement."])
+			self:Print(L["|cffffff00/rare tomtom|r - Toggle TomTom waypoints."])
 			self:Print(L["|cffffff00/rare output (general|say|yell|guild|party|raid)|r - Change output channel."])
 			self:Print(L["|cffffff00/rare status|r or |cffffff00/rare config|r - Print current configuration."])
 			self:Print(L["|cffffff00/rare help|r or |cffffff00/rare ?|r - Print this help again."])
 		elseif key == "load" then
 			self.db.global.onLoad = not self.db.global.onLoad
 			self:Print((L["Loading message has been %s!"]):format(GetConfigStatus(self.db.global.onLoad)))
+		elseif key == "reset" then
+			self.rares = {}
+			self.lastArmory = 0
+			self:Print(L["Rare list has been reset."])
 		elseif key == "status" or key == "config" then
 			self:Print((L["AnnounceRare by Crackpotx v%s"]):format(self.version))
 			self:Print(L["For Help: |cffffff00/rare help|r"])
@@ -307,8 +404,13 @@ function AR:PLAYER_ENTERING_WORLD()
 			self:Print((L["Armory Announcements: %s"]):format(GetConfigStatus(self.db.global.armory)))
 			self:Print((L["Automatic Announcements: %s"]):format(GetConfigStatus(self.db.global.autoAnnounce)))
 			self:Print((L["Death Announcements: %s"]):format(GetConfigStatus(self.db.global.announceDeath)))
+			--self:Print((L["Drill Notifications: %s"]):format(GetConfigStatus(self.db.global.drill)))
 			self:Print((L["Load Announcement: %s"]):format(GetConfigStatus(self.db.global.onLoad)))
+			self:Print((L["TomTom Waypoints: %s"]):format(GetConfigStatus(self.db.global.tomtom)))
 			self:Print((L["Output Channel: |cffffff00%s|r"]):format(self.db.global.output:upper() == "CHANNEL" and "GENERAL" or self.db.global.output))
+		elseif key == "tomtom" then
+			self.db.global.tomtom = not self.db.global.tomtom
+			self:Print((L["TomTom waypoints have been %s!"]):format(GetConfigStatus(self.db.global.tomtom)))
 		elseif key == "output" then
 			local _, value = self:GetArgs(args, 2)
 			value = value:lower()
@@ -334,7 +436,7 @@ function AR:PLAYER_ENTERING_WORLD()
 			local tarClass = UnitClassification("target")
 			-- only do anything when the player is in mechagon or nazjatar
 			if self.correctZone then
-				if ValidTarget() then
+				if ValidTarget(true) then
 					AnnounceRare()
 				elseif not UnitExists("target") then
 					self:Print(L["You do not have a target."])
@@ -356,10 +458,11 @@ end
 
 function AR:OnInitialize()
 	self.db = LibStub("AceDB-3.0"):New("AnnounceRareDB", defaults)
+	--self:RegisterEvent("CHAT_MSG_MONSTER_EMOTE")
+	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 	self:RegisterEvent("PLAYER_ENTERING_WORLD")
 	self:RegisterEvent("PLAYER_TARGET_CHANGED")
 	self:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
 	self:RegisterEvent("ZONE_CHANGED", function() AR:CheckZone() end)
 	self:RegisterEvent("ZONE_CHANGED_NEW_AREA", function() AR:CheckZone() end)
-	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 end
