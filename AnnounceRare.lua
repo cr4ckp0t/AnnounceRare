@@ -225,7 +225,7 @@ local function ValidTarget(cmdRun)
 					return false
 				else 
 					--return (not cmdRun and not FindInArray(tarId, AR.rares)) and true or false
-					return cmdRun == true and true or FindInArry(tarId, AR.rares)
+					return cmdRun == true and true or FindInArray(tarId, AR.rares)
 				end
 			end
 		end
