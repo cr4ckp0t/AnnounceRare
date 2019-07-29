@@ -60,16 +60,16 @@ local defaults = {
 
 local rares = {
 	[151884] = "Fungarian Furor", -- Fungarian Furor
-    [135497] = "Fungarian Furor", -- Fungarian Furor
-    [151625] = "The Scrap King", -- The Scrap King
-    [151623] = "The Scrap King (Mounted)", -- The Scrap King (Mounted)
-    [152569] = "Crazed Trogg (Green)", -- Crazed Trogg (Green)
-    [152570] = "Crazed Trogg (Blue)", -- Crazed Trogg (Blue)
+	[135497] = "Fungarian Furor", -- Fungarian Furor
+	[151625] = "The Scrap King", -- The Scrap King
+	[151623] = "The Scrap King (Mounted)", -- The Scrap King (Mounted)
+	[152569] = "Crazed Trogg (Green)", -- Crazed Trogg (Green)
+	[152570] = "Crazed Trogg (Blue)", -- Crazed Trogg (Blue)
 	[149847] = "Crazed Trogg (Orange)", -- Crazed Trogg (Orange)
 
 	-- for the drills
 	[153206] = "Ol' Big Tusk",
-	[150342] = "Arachnoid Harvester (Alt Time)",
+	[154342] = "Arachnoid Harvester (Alt Time)",
 	[154701] = "Gorged Gear-Cruncher",
 	[154739] = "Caustic Mechaslime",
 	[152113] = "The Kleptoboss",
@@ -270,7 +270,7 @@ end
 function AR:COMBAT_LOG_EVENT_UNFILTERED()
 	local _, subevent, _, _, _, sourceFlags, _, srcGuid, srcName = CombatLogGetCurrentEventInfo()
 	if subevent == "UNIT_DIED" and self.correctZone then
-		local id = GetNPCGUID(srcGuid) 
+		local id = GetNPCGUID(srcGuid)
 		if id ~= 151623 and self.db.global.announceDeath == true and #self.rares > 0 and FindInArray(id, self.rares) then
 			local hours, minutes = GetGameTime()
 			local genId = GetGeneralChannelNumber()
@@ -305,7 +305,11 @@ function AR:UPDATE_MOUSEOVER_UNIT(...)
 	end
 end
 
-function AR:CHAT_MSG_MONSTER_EMOTE(msg, ...)
+function AR:CHAT_MSG_CHANNEL(msg, ...)
+
+end
+
+--[[function AR:CHAT_MSG_MONSTER_EMOTE(msg, ...)
 	if self.db.global.drill and self.correctZone and msg:match("DR-") then
 		local _, _, drill = strsplit(" ", msg)
 		local x, y, rareName
@@ -346,7 +350,7 @@ function AR:CHAT_MSG_MONSTER_EMOTE(msg, ...)
 			self:CreateWaypoint(x, y, ("%s: %s"):format(drill, rareName))
 		end
 	end
-end
+end]]
 
 function AR:PLAYER_ENTERING_WORLD()
 	-- init some stuff
@@ -413,10 +417,10 @@ function AR:PLAYER_ENTERING_WORLD()
 			self:Print((L["TomTom waypoints have been %s!"]):format(GetConfigStatus(self.db.global.tomtom)))
 		elseif key == "output" then
 			local _, value = self:GetArgs(args, 2)
-			value = value:lower()
 			if value == "" or value == nil then
 				self:Print(L["You must provide an output channel for the announcements."])
 			else
+				value = value:lower()
 				if not IsValidOutputChannel(value) then
 					self:Print((L["Valid Outputs: %s, %s, %s, %s, %s, %s"]):format(
 						outputChannel:format(L["general"]),
