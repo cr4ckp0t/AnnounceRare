@@ -118,8 +118,28 @@ local function GetGeneralChannelNumber()
 	return GetChannelName(GetLocale() == "ruRU" and channelRUFormat:format(general, zoneText) or channelFormat:format(general, zoneText))
 end
 
+local function GetDelocalizedChannel(chan)
+	if chan == L["general"] then
+		return "CHANNEL"
+	elseif chan == L["say"] then
+		return "SAY"
+	elseif chan == L["guild"] then
+		return "GUILD"
+	elseif chan == L["officer"] then
+		return "OFFICER"
+	elseif chan == L["yell"] then
+		return "YELL"
+	elseif chan == L["party"] then
+		return "PARTY"
+	elseif chan == L["raid"] then
+		return "RAID"
+	else
+		return false
+	end
+end
+
 local function IsValidOutputChannel(chan)
-	return (chan == "general" or chan == "say" or chan == "guild" or chan == "yell" or chan == "party" or chan == "raid") and true or false
+	return (chan == L["general"] or chan == L["say"] or chan == L["guild"] or chan == L["officer"] or chan == L["yell"] or chan == L["party"] or chan == L["raid"]) and true or false
 end
 
 -- Time Displacement
@@ -204,7 +224,8 @@ local function ValidTarget(cmdRun)
 				if tarId == nil then
 					return false
 				else 
-					return (not cmdRun and not FindInArray(tarId, AR.rares)) and true or false
+					--return (not cmdRun and not FindInArray(tarId, AR.rares)) and true or false
+					return cmdRun == true and true or FindInArry(tarId, AR.rares)
 				end
 			end
 		end
@@ -360,29 +381,29 @@ function AR:PLAYER_ENTERING_WORLD()
 	self:CheckZone()
 
 	-- tomtom waypoint settings
-	self.tomtom = IsAddOnLoaded("TomTom")
-	self.lastWaypoint = false
-	self.tomtomExpire = false
+	--self.tomtom = IsAddOnLoaded("TomTom")
+	--self.lastWaypoint = false
+	--self.tomtomExpire = false
 
 	-- chat command using aceconsole-3.0
 	self:RegisterChatCommand("rare", function(args)
 		local key = self:GetArgs(args, 1)
-		if key == "auto" then
+		if key == L["auto"] then
 			self.db.global.autoAnnounce = not self.db.global.autoAnnounce
 			self:Print((L["Auto Announce has been %s!"]):format(GetConfigStatus(self.db.global.autoAnnounce)))
-		elseif key == "death" then
+		elseif key == L["death"] then
 			self.db.global.announceDeath = not self.db.global.announceDeath
 			self:Print((L["Death Announcements have been %s!"]):format(GetConfigStatus(self.db.global.announceDeath)))
-		elseif key == "adv" then
+		elseif key == L["adv"] then
 			self.db.global.advertise = not self.db.global.advertise
 			self:Print((L["Advertisements have been %s!"]):format(GetConfigStatus(self.db.global.advertise)))
-		elseif key == "armory" then
+		elseif key == L["armory"] then
 			self.db.global.armory = not self.db.global.armory
 			self:Print((L["Armory announcements have been %s!"]):format(GetConfigStatus(self.db.global.armory)))
 		--[[elseif key == "drill" then
 			self.db.global.drill = not self.db.global.drill
 			self:Print((L["Drill announcements have been %s!"]):format(GetConfigStatus(self.db.global.drill)))]]
-		elseif key == "help" or key == "?" then
+		elseif key == L["help"] or key == "?" then
 			self:Print(L["Command Line Help"])
 			self:Print(L["|cffffff00/rare|r - Announce rare to general chat."])
 			self:Print(L["|cffffff00/rare armory|r - Toggle armory announcements."])
@@ -394,14 +415,14 @@ function AR:PLAYER_ENTERING_WORLD()
 			self:Print(L["|cffffff00/rare output (general|say|yell|guild|party|raid)|r - Change output channel."])
 			self:Print(L["|cffffff00/rare status|r or |cffffff00/rare config|r - Print current configuration."])
 			self:Print(L["|cffffff00/rare help|r or |cffffff00/rare ?|r - Print this help again."])
-		elseif key == "load" then
+		elseif key == L["load"] then
 			self.db.global.onLoad = not self.db.global.onLoad
 			self:Print((L["Loading message has been %s!"]):format(GetConfigStatus(self.db.global.onLoad)))
-		elseif key == "reset" then
+		elseif key == L["reset"] then
 			self.rares = {}
 			self.lastArmory = 0
 			self:Print(L["Rare list has been reset."])
-		elseif key == "status" or key == "config" then
+		elseif key == L["status"] or key == L["config"] then
 			self:Print((L["AnnounceRare by Crackpotx v%s"]):format(self.version))
 			self:Print(L["For Help: |cffffff00/rare help|r"])
 			self:Print((L["Advertisements: %s"]):format(GetConfigStatus(self.db.global.advertise)))
@@ -412,26 +433,27 @@ function AR:PLAYER_ENTERING_WORLD()
 			self:Print((L["Load Announcement: %s"]):format(GetConfigStatus(self.db.global.onLoad)))
 			self:Print((L["TomTom Waypoints: %s"]):format(GetConfigStatus(self.db.global.tomtom)))
 			self:Print((L["Output Channel: |cffffff00%s|r"]):format(self.db.global.output:upper() == "CHANNEL" and "GENERAL" or self.db.global.output))
-		elseif key == "tomtom" then
+		--[[elseif key == "tomtom" then
 			self.db.global.tomtom = not self.db.global.tomtom
-			self:Print((L["TomTom waypoints have been %s!"]):format(GetConfigStatus(self.db.global.tomtom)))
-		elseif key == "output" then
+			self:Print((L["TomTom waypoints have been %s!"]):format(GetConfigStatus(self.db.global.tomtom)))]]
+		elseif key == L["output"] then
 			local _, value = self:GetArgs(args, 2)
 			if value == "" or value == nil then
 				self:Print(L["You must provide an output channel for the announcements."])
 			else
 				value = value:lower()
 				if not IsValidOutputChannel(value) then
-					self:Print((L["Valid Outputs: %s, %s, %s, %s, %s, %s"]):format(
+					self:Print((L["Valid Outputs: %s, %s, %s, %s, %s, %s, %s"]):format(
 						outputChannel:format(L["general"]),
 						outputChannel:format(L["say"]),
 						outputChannel:format(L["yell"]),
 						outputChannel:format(L["guild"]),
+						outputChannel:format(L["officer"]),
 						outputChannel:format(L["party"]),
 						outputChannel:format(L["raid"])
 					))
 				else
-					self.db.global.output = value ~= "general" and value:upper() or "CHANNEL"
+					self.db.global.output = value ~= L["general"] and GetDelocalizedChannel(value) or "CHANNEL"
 					self:Print((L["Changed output to %s!"]):format(outputChannel:format(value:upper())))
 				end
 			end
@@ -463,6 +485,7 @@ end
 function AR:OnInitialize()
 	self.db = LibStub("AceDB-3.0"):New("AnnounceRareDB", defaults)
 	--self:RegisterEvent("CHAT_MSG_MONSTER_EMOTE")
+	--self:RegisterEvent("CHAT_MSG_CHANNEL")
 	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 	self:RegisterEvent("PLAYER_ENTERING_WORLD")
 	self:RegisterEvent("PLAYER_TARGET_CHANGED")

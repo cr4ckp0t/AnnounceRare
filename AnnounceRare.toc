@@ -1,7 +1,7 @@
 ## Interface: 80200
 ## Author: Crackpotx
 ## Title: Announce Rare (BFA 8.2)
-## Version: 1.1.11
+## Version: 1.1.12
 ## Notes: Announce rares to Mechagon and Nazjatar general chat.
 ## SavedVariables: AnnounceRareDB
 
