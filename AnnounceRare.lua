@@ -44,7 +44,7 @@ local channelFormat = "%s - %s"
 local channelRUFormat = "%s: %s"
 local outputChannel = "|cffffff00%s|r"
 local messageToSend = L["%s%s (%s/%s %.2f%%) is at %s %s%s, and %s"]
-local deathMessage = L["%s%s has been slain %sat %02d:%02d!"]
+local deathMessage = L["%s%s has been slain %sat %02d:%02d server time!"]
 local defaults = {
 	global = {
 		armory = true,
@@ -225,7 +225,7 @@ local function ValidTarget(cmdRun)
 					return false
 				else 
 					--return (not cmdRun and not FindInArray(tarId, AR.rares)) and true or false
-					return cmdRun == true and true or FindInArray(tarId, AR.rares)
+					return cmdRun == true and true or not FindInArray(tarId, AR.rares)
 				end
 			end
 		end
