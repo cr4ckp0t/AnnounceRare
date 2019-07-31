@@ -1,10 +1,7 @@
 -------------------------------------------------------------------------------
 -- Announce Rare (BFA 8.2) By Crackpotx (US, Lightbringer)
 -------------------------------------------------------------------------------
-
---testing
 local AR = LibStub("AceAddon-3.0"):NewAddon("AnnounceRare", "AceComm-3.0", "AceConsole-3.0", "AceEvent-3.0")
-AR.version = GetAddOnMetadata("AnnounceRare", "Version")
 local CTL = assert(ChatThrottleLib, "AnnounceRare requires ChatThrottleLib.")
 local L = LibStub("AceLocale-3.0"):GetLocale("AnnounceRare", false)
 
@@ -15,6 +12,7 @@ local C_Map_GetMapInfo = C_Map.GetMapInfo
 local C_Map_GetPlayerMapPosition = C_Map.GetPlayerMapPosition
 local CombatLogGetCurrentEventInfo = _G["CombatLogGetCurrentEventInfo"]
 local EnumerateServerChannels = _G["EnumerateServerChannels"]
+local GetAddOnMetadata = _G["GetAddOnMetadata"]
 local GetChannelName = _G["GetChannelName"]
 local GetGameTime = _G["GetGameTime"]
 local GetItemInfo = _G["GetItemInfo"]
@@ -32,6 +30,9 @@ local UnitHealth = _G["UnitHealth"]
 local UnitHealthMax = _G["UnitHealthMax"]
 local UnitIsDead = _G["UnitIsDead"]
 local UnitName = _G["UnitName"]
+
+AR.title = GetAddOnMetadata("Lorewalkers", "Title")
+AR.version = GetAddOnMetadata("AnnounceRare", "Version")
 
 local band = bit.band
 local ceil = math.ceil
@@ -60,7 +61,112 @@ local defaults = {
 	}
 }
 
-local rares = {
+-- options table
+local options = {
+	name = AR.title,
+	handler = AR,
+	type = "group",
+	args = {
+		header = {
+			type = "header",
+			order = 1,
+			name = (L["|cffff7d0aVersion:|r %s"]):format(AR.version),
+			width = "full",
+		},
+		general = {
+			type = "group",
+			order = 2,
+			name = L["General Options"],
+			guiInline = true,
+			args = {
+				advertise = {
+					type = "toggle",
+					order = 1,
+					name = L["Advertise AR"],
+					desc = L["Adds a prefix to chat messages with the name of the addon."],
+					get = function(info) return AR.db.global.advertise end,
+					set = function(info, value) AR.db.global.advertise = value end,
+				},
+				onLoad = {
+					type = "toggle",
+					order = 2,
+					name = L["Loading Message"],
+					desc = L["Display a loading message when the addon first loads."],
+					get = function(info) return AR.db.global.onLoad end,
+					set = function(info, value) AR.db.global.onLoad = value end,
+				},
+			},
+		},
+		announcements = {
+			type = "group",
+			order = 3,
+			guiInline = true,
+			name = L["Announcement Options"],
+			args = {
+				output = {
+					type = "select",
+					order = 1,
+					name = L["Channel Output"],
+					desc = L["Channel to send the messages to."],
+					values = {
+						["CHANNEL"] = L["General Chat"],
+						["SAY"] = L["Say"],
+						["YELL"] = L["Yell"],
+						["PARTY"] = L["Party"],
+						["RAID"] = L["Raid"],
+						["GUILD"] = L["Guild"],
+						["OFFICER"] = L["Officer"],
+					},
+					get = function(info) return AR.db.global.output end,
+					set = function(info, value) AR.db.global.output = value end,
+				},
+				autoAnnounce = {
+					type = "toggle",
+					order = 2,
+					name = L["Auto Announce"],
+					desc = L["Automatically announce rares when targeting one in Mechagon or Nazjatar."],
+					get = function(info) return AR.db.global.autoAnnounce end,
+					set = function(info, value) AR.db.global.autoAnnounce = value end,
+				},
+				announceDeath = {
+					type = "toggle",
+					order = 3,
+					name = L["Announce Death"],
+					desc = L["Automatically announce when a rare dies."],
+					get = function(info) return AR.db.global.announceDeath end,
+					set = function(info, value) AR.db.global.announceDeath = value end,
+				},
+				armory = {
+					type = "toggle",
+					order = 4,
+					name = L["Announce Armories"],
+					desc = L["Automatically announces armories when you mouseover a broken one, or mouseover the various items."],
+					get = function(info) return AR.db.global.armory end,
+					set = function(info, value) AR.db.global.armory = value end,
+				},
+				drill = {
+					type = "toggle",
+					order = 5,
+					name = L["Drill Announcements"],
+					desc = L["Announce drill sites to let people know what mob is about to be available."],
+					get = function(info) return AR.db.global.drill end,
+					set = function(info, value) AR.db.global.drill = value end,
+				},
+				tomtom = {
+					type = "toggle",
+					order = 6,
+					name = L["TomTom Waypoints"],
+					desc = L["Automatically create TomTom waypoints for you when a drill site is activated.\n\n|cffff0000REQUIRES TOMTOM ADDON!|r"],
+					disabled = function() return not AR.db.global.drill end,
+					get = function(info) return AR.db.global.tomtom end,
+					set = function(info, value) AR.db.global.tomtom = value end,
+				},
+			},
+		},
+	}
+}
+
+--[[local rares = {
 	[151884] = "Fungarian Furor", -- Fungarian Furor
 	[135497] = "Fungarian Furor", -- Fungarian Furor
 	[151625] = "The Scrap King", -- The Scrap King
@@ -77,7 +183,7 @@ local rares = {
 	[152113] = "The Kleptoboss",
 	[153200] = "Boilburn",
 	[153205] = "Gemicide",
-}
+}]]
 
 local function UpdateDuplicates(id)
 	if id == 151884 then
@@ -485,7 +591,12 @@ function AR:PLAYER_ENTERING_WORLD()
 end
 
 function AR:OnInitialize()
+	-- setup database and config ui
 	self.db = LibStub("AceDB-3.0"):New("AnnounceRareDB", defaults)
+	LibStub("AceConfig-3.0"):RegisterOptionsTable("AnnounceRare", options)
+	self.optionsUI = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("AnnounceRare", "AnnounceRare")
+
+	-- register our events
 	--self:RegisterEvent("CHAT_MSG_MONSTER_EMOTE")
 	--self:RegisterEvent("CHAT_MSG_CHANNEL")
 	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
