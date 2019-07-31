@@ -1,6 +1,8 @@
 -------------------------------------------------------------------------------
 -- Announce Rare (BFA 8.2) By Crackpotx (US, Lightbringer)
 -------------------------------------------------------------------------------
+
+--testing
 local AR = LibStub("AceAddon-3.0"):NewAddon("AnnounceRare", "AceComm-3.0", "AceConsole-3.0", "AceEvent-3.0")
 AR.version = GetAddOnMetadata("AnnounceRare", "Version")
 local CTL = assert(ChatThrottleLib, "AnnounceRare requires ChatThrottleLib.")
