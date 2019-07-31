@@ -11,6 +11,8 @@ externals:
 		url: https://repos.wowace.com/wow/ace3/trunk/AceAddon-3.0
 	Libraries\Ace3\AceComm-3.0:
 		url: https://repos.wowace.com/wow/ace3/trunk/AceComm-3.0
+	Libraries\Ace3\AceConfig-3.0:
+		url: https://repos.wowace.com/wow/ace3/trunk/AceConfig-3.0
 	Libraries\Ace3\AceConsole-3.0:
 		url: https://repos.wowace.com/wow/ace3/trunk/AceConsole-3.0
 	Libraries\Ace3\AceDB-3.0:
