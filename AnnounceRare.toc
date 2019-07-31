@@ -15,6 +15,7 @@ Libraries\Ace3\AceConsole-3.0\AceConsole-3.0.xml
 Libraries\Ace3\AceDB-3.0\AceDB-3.0.xml
 Libraries\Ace3\AceEvent-3.0\AceEvent-3.0.xml
 Libraries\Ace3\AceLocale-3.0\AceLocale-3.0.xml
+Libraries\Ace3\AceTimer-3.0\AceTimer-3.0.xml
 Libraries\ChatThrottleLib\ChatThrottleLib.xml
 
 Locales\enUS.lua

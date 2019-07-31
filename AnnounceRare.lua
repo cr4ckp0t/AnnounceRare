@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Announce Rare (BFA 8.2) By Crackpotx (US, Lightbringer)
 -------------------------------------------------------------------------------
-local AR = LibStub("AceAddon-3.0"):NewAddon("AnnounceRare", "AceComm-3.0", "AceConsole-3.0", "AceEvent-3.0")
+local AR = LibStub("AceAddon-3.0"):NewAddon("AnnounceRare", "AceComm-3.0", "AceConsole-3.0", "AceEvent-3.0", "AceTimer-3.0")
 local CTL = assert(ChatThrottleLib, "AnnounceRare requires ChatThrottleLib.")
 local L = LibStub("AceLocale-3.0"):GetLocale("AnnounceRare", false)
 
@@ -54,7 +54,9 @@ local defaults = {
 		autoAnnounce = false,
 		advertise = false,
 		announceDeath = true,
+		debug = false,
 		drill = true,
+		monitor = true,
 		onLoad = false,
 		output = "CHANNEL",
 		tomtom = true,
@@ -94,6 +96,22 @@ local options = {
 					desc = L["Display a loading message when the addon first loads."],
 					get = function(info) return AR.db.global.onLoad end,
 					set = function(info, value) AR.db.global.onLoad = value end,
+				},
+				monitor = {
+					type = "toggle",
+					order = 3,
+					name = L["Monitor Chat"],
+					desc = L["Monitor chat for announcements from other users. This is used as a throttle, or to direct you to a rare via TomTom waypoints (if enabled)."],
+					get = function(info) return AR.db.global.monitor end,
+					set = function(info, value) AR.db.global.monitor = value end,
+				},
+				debug = {
+					type = "toggle",
+					order = 4,
+					name = L["Debugging"],
+					desc = L["Enable this to assist with fixing a bug or unintended functionality."],
+					get = function(info) return AR.db.global.debug end,
+					set = function(info, value) AR.db.global.debug = value; self.debug = value end,
 				},
 			},
 		},
@@ -254,7 +272,7 @@ end
 local function IsInAltTimeline()
 	for i = 1, 40 do
 		local name = UnitAura("player", i)
-		if name == "Time Displacement" then
+		if name == L["Time Displacement"] then
 			return true
 		end
 	end
@@ -262,7 +280,7 @@ local function IsInAltTimeline()
 end
 
 local function GetConfigStatus(configVar)
-	return configVar == true and L["|cff00ff00ENABLED|r"] or L["|cffff0000DISABLED|r"]
+	return configVar == true and ("|cff00ff00%s|r"):format(L["ENABLED"]) or ("|cffff0000%s|r"):format(L["DISABLED"])
 end
 
 local function FormatNumber(n)
@@ -289,34 +307,11 @@ local function DecRound(num, decPlaces)
 	return format("%." .. (decPlaces or 0) .. "f", num)
 end
 
-local function AnnounceRare()
-	-- player target is a rare
-	local tarId, tarCombat = GetTargetId(), UnitAffectingCombat("target")
-	local tarHealth, tarHealthMax = UnitHealth("target"), UnitHealthMax("target")
-	local tarHealthPercent = (tarHealth / tarHealthMax) * 100
-	local tarPos = C_Map_GetPlayerMapPosition(C_Map_GetBestMapForUnit("player"), "player")
-	local genId = GetGeneralChannelNumber()
-
-	if tarId == nil then
-		AR:Print(L["Unable to determine target's GUID."])
-	elseif AR.db.global.output:upper() == "CHANNEL" and not genId then
-		AR:Print(L["Unable to determine your general channel number."])
-	else
-		CTL:SendChatMessage("NORMAL", "AnnounceRare", messageToSend:format(
-			AR.db.global.advertise == true and "AnnounceRare: " or "",
-			rares[tarId] ~= nil and rares[tarId] or UnitName("target"),
-			FormatNumber(tarHealth),
-			FormatNumber(tarHealthMax),
-			tarHealthPercent,
-			ceil(tarPos.x * 10000) / 100,
-			ceil(tarPos.y * 10000) / 100,
-			IsInAltTimeline() == true and " " .. L["in the alternative timeline"] or "",
-			UnitAffectingCombat("target") == true and L["has been engaged!"] or L["has NOT been engaged!"]
-		), AR.db.global.output:upper(), nil, AR.db.global.output:upper() == "CHANNEL" and genId or nil)
-	end
+local function ValidNPC(id)
+	return (AR.rares["mechagon"][id] ~= nil or AR.rares["nazjatar"][id] ~= nil) and true or false
 end
 
-local function ValidTarget(cmdRun)
+--[[local function ValidTarget(cmdRun)
 	-- if no target, then fail
 	if not UnitExists("target") then
 		return false
@@ -337,6 +332,35 @@ local function ValidTarget(cmdRun)
 				end
 			end
 		end
+	end
+end]]
+
+function AR:AnnounceRare()
+	-- player target is a rare
+	local tarId, tarCombat = GetTargetId(), UnitAffectingCombat("target")
+	local tarHealth, tarHealthMax = UnitHealth("target"), UnitHealthMax("target")
+	local tarHealthPercent = (tarHealth / tarHealthMax) * 100
+	local tarPos = C_Map_GetPlayerMapPosition(C_Map_GetBestMapForUnit("player"), "player")
+	local genId = GetGeneralChannelNumber()
+
+	if tarId == nil then
+		self:Print(L["Unable to determine target's GUID."])
+	elseif AR.db.global.output:upper() == "CHANNEL" and not genId then
+		self:Print(L["Unable to determine your general channel number."])
+	else
+		CTL:SendChatMessage("NORMAL", "AnnounceRare", messageToSend:format(
+			self.db.global.advertise == true and "AnnounceRare: " or "",
+			self.rares[self.zoneText][tarId].name,
+			FormatNumber(tarHealth),
+			FormatNumber(tarHealthMax),
+			tarHealthPercent,
+			ceil(tarPos.x * 10000) / 100,
+			ceil(tarPos.y * 10000) / 100,
+			IsInAltTimeline() == true and " " .. L["in the alternative timeline"] or "",
+			UnitAffectingCombat("target") == true and L["has been engaged!"] or L["has NOT been engaged!"]
+		), self.db.global.output:upper(), nil, self.db.global.output:upper() == "CHANNEL" and genId or nil)
+		self.rares[self.zoneText][tarId].lastSeen = time()
+		self.rares[self.zoneText][tarId].announced = true
 	end
 end
 
@@ -360,7 +384,7 @@ function AR:CreateWaypoint(x, y, name)
 
 	-- create an auto expire timer
 	if self.tomtomExpire ~= false then self.tomtomExpire:Cancel() end
-	self.tomtomExpire = C_Timer.NewTimer(120, function()
+	self.tomtomExpire = self:ScheduleTimer(120, function()
 		if AR.lastWaypoint ~= nil and AR.lastWaypoint ~= false then
 			TomTom:RemoveWaypoint(AR.lastWaypoint)
 		end
@@ -386,10 +410,10 @@ function AR:Print(msg)
 end
 
 function AR:PLAYER_TARGET_CHANGED()
-	if self.db.global.autoAnnounce and self.correctZone and ValidTarget(false) then
+	if self.db.global.autoAnnounce and self.correctZone then
 		local tarId = GetTargetId()
 		if tarId ~= nil then
-			AnnounceRare()
+			self:AnnounceRare()
 			self.rares[#self.rares + 1] = tarId
 			UpdateDuplicates(tarId)
 		end
@@ -400,7 +424,7 @@ function AR:COMBAT_LOG_EVENT_UNFILTERED()
 	local _, subevent, _, _, _, sourceFlags, _, srcGuid, srcName = CombatLogGetCurrentEventInfo()
 	if subevent == "UNIT_DIED" and self.correctZone then
 		local id = GetNPCGUID(srcGuid)
-		if id ~= 151623 and self.db.global.announceDeath == true and #self.rares > 0 and FindInArray(id, self.rares) then
+		if id ~= 151623 and self.db.global.announceDeath == true and then
 			local hours, minutes = GetGameTime()
 			local genId = GetGeneralChannelNumber()
 
@@ -425,7 +449,7 @@ function AR:UPDATE_MOUSEOVER_UNIT(...)
 	if self.correctZone then
 		local ttItemName = GameTooltip:GetUnit()
 		local armoryName = GetItemInfo(169868)
-		if self.db.global.armory and (ttItemName == "Broken Rustbolt Armory" or ttItemName == armoryName) and self.lastArmory <= time() - 600 then
+		if self.db.global.armory and (ttItemName == "Broken Rustbolt Armory" or ttItemName == armoryName) and self.lastArmory <= time() - 300 then
 			local genId = GetGeneralChannelNumber()
 			local tarPos = C_Map_GetPlayerMapPosition(C_Map_GetBestMapForUnit("player"), "player")
 			CTL:SendChatMessage("NORMAL", "AnnounceRare", (L["%sArmory is located at %s %s!"]):format(ttItemName == "Broken Rustbolt Armory" and L["Broken"] .. " " or "", ceil(tarPos.x * 10000) / 100, ceil(tarPos.y * 10000) / 100), self.db.global.output:upper(), nil, self.db.global.output:upper() == "CHANNEL" and genId or nil)
@@ -566,12 +590,10 @@ function AR:PLAYER_ENTERING_WORLD()
 				end
 			end
 		else 
-			local zoneText = GetZoneText()
 			local tarClass = UnitClassification("target")
-			-- only do anything when the player is in mechagon or nazjatar
 			if self.correctZone then
 				if ValidTarget(true) then
-					AnnounceRare()
+					self:AnnounceRare()
 				elseif not UnitExists("target") then
 					self:Print(L["You do not have a target."])
 				elseif UnitIsDead("target") then
@@ -596,6 +618,8 @@ function AR:OnInitialize()
 	LibStub("AceConfig-3.0"):RegisterOptionsTable("AnnounceRare", options)
 	self.optionsUI = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("AnnounceRare", "AnnounceRare")
 
+	self.debug = self.db.global.debug
+
 	-- register our events
 	--self:RegisterEvent("CHAT_MSG_MONSTER_EMOTE")
 	--self:RegisterEvent("CHAT_MSG_CHANNEL")
@@ -606,3 +630,415 @@ function AR:OnInitialize()
 	self:RegisterEvent("ZONE_CHANGED", function() AR:CheckZone() end)
 	self:RegisterEvent("ZONE_CHANGED_NEW_AREA", function() AR:CheckZone() end)
 end
+
+AR.rares = {
+	["mechagon"] = {
+		[151934] = {
+			["name"] = L["Arachnoid Harvester"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[150394] = {
+			["name"] = L["Armored Vaultbot"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[153200] = {
+			["name"] = L["Boilburn"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[151308] = {
+			["name"] = L["Boggac Skullbash"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[152001] = {
+			["name"] = L["Bonepicker"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[154739] = {
+			["name"] = L["Caustic Mechaslime"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[151569] = {
+			["name"] = L["Deepwater Maw"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[150342] = {
+			["name"] = L["Earthbreaker Gulroc"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[154153] = {
+			["name"] = L["Enforcer KX-T57"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[151202] = {
+			["name"] = L["Foul Manifestation"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[151884] = {
+			["name"] = L["Fungarian Furor"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[135497] = {
+			["name"] = L["Fungarian Furor"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[153228] = {
+			["name"] = L["Gear Checker Cogstar"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[153205] = {
+			["name"] = L["Gemicide"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[154701] = {
+			["name"] = L["Gorged Gear-Cruncher"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[151684] = {
+			["name"] = L["Jawbreaker"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[152007] = {
+			["name"] = L["Killsaw"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[151933] = {
+			["name"] = L["Malfunctioning Beastbot"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[151124] = {
+			["name"] = L["Mechagonian Nullifier"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[151672] = {
+			["name"] = L["Mecharantula"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[151627] = {
+			["name"] = L["Mr. Fixthis"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[151296] = {
+			["name"] = L["OOX-Avenger/MG"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[153206] = {
+			["name"] = L["Ol' Big Tusk"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[152764] = {
+			["name"] = L["Oxidized Leachbeast"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[151702] = {
+			["name"] = L["Paol Pondwader"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[150575] = {
+			["name"] = L["Rumblerocks"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[152182] = {
+			["name"] = L["Rustfeather"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[155583] = {
+			["name"] = L["Scrapclaw"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[150937] = {
+			["name"] = L["Seaspit"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[153000] = {
+			["name"] = L["Sparkqueen P'Emp"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[153226] = {
+			["name"] = L["Steel Singer Freza"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[155060] = {
+			["name"] = L["The Doppel Gang"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[152113] = {
+			["name"] = L["The Kleptoboss"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[151940] = {
+			["name"] = L["Uncle T'Rogg"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[151625] = {
+			["name"] = L["The Scrap King"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[151623] = {
+			["name"] = L["The Scrap King (Mounted)"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[154342] = {
+			["name"] = L["Arachnoid Harvester (Alt Time)"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[154225] = {
+			["name"] = L["The Rusty Prince (Alt Time)"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[154968] = {
+			["name"] = L["Armored Vaultbot (Alt Time)"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[152569] = {
+			["name"] = L["Crazed Trogg (Green)"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[152570] = {
+			["name"] = L["Crazed Trogg (Blue)"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+		[149847] = {
+			["name"] = L["Crazed Trogg (Orange)"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},
+	},
+	["nazjatar"] = {
+		[152415] = {
+			["name"] = L["Alga the Eyeless"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},                 
+		[152681] = {
+			["name"] = L["Prince Typhonus"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},                  
+		[153658] = {
+			["name"] = L["Shiz'narasz the Consumer"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},         
+		[151719] = {
+			["name"] = L["Voice in the Deeps"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},               
+		[152794] = {
+			["name"] = L["Amethyst Spireshell"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},              
+		[152756] = {
+			["name"] = L["Daggertooth Terror"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},               
+		[144644] = {
+			["name"] = L["Mirecrawler"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},                      
+		[152465] = {
+			["name"] = L["Needlespine"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},                      
+		[152795] = {
+			["name"] = L["Sandclaw Stoneshell"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},              
+		[150191] = {
+			["name"] = L["Avarius"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},                          
+		[152361] = {
+			["name"] = L["Banescale the Packfather"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},         
+		[149653] = {
+			["name"] = L["Carnivorous Lasher"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},               
+		[152323] = {
+			["name"] = L["King Gakula"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},                      
+		[150583] = {
+			["name"] = L["Rockweed Shambler"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},                
+		[151870] = {
+			["name"] = L["Sandcastle"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},                       
+		[153898] = {
+			["name"] = L["Tidelord Aquatus"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},                 
+		[153928] = {
+			["name"] = L["Tidelord Dispersius"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},              
+		[154148] = {
+			["name"] = L["Tidemistress Leth'sindra"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},         
+		[150468] = {
+			["name"] = L["Vor'koth"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},                         
+		[152566] = {
+			["name"] = L["Anemonar"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},                         
+		[152567] = {
+			["name"] = L["Kelpwillow"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},                       
+		[152397] = {
+			["name"] = L["Oronu"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},                            
+		[152568] = {
+			["name"] = L["Urduu"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},                            
+		[152548] = {
+			["name"] = L["Scale Matriarch Gratinax"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},         
+		[152542] = {
+			["name"] = L["Scale Matriarch Zodia"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},            
+		[152545] = {
+			["name"] = L["Scale Matriarch Vynara"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},           
+		[152712] = {
+			["name"] = L["Blindlight"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},                       
+		[152556] = {
+			["name"] = L["Chasm-Haunter"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},                    
+		[152291] = {
+			["name"] = L["Deepglider"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},                       
+		[152555] = {
+			["name"] = L["Elderspawn Nalaada"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},               
+		[152414] = {
+			["name"] = L["Elder Unu"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},                        
+		[152553] = {
+			["name"] = L["Garnetscale"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},                      
+		[152448] = {
+			["name"] = L["Iridescent Glimmershell"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},          
+		[152682] = {
+			["name"] = L["Prince Vortran"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},                   
+		[152552] = {
+			["name"] = L["Shassera"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},                         
+		[152359] = {
+			["name"] = L["Siltstalker the Packmother"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},       
+		[152290] = {
+			["name"] = L["Soundless"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},                        
+		[152360] = {
+			["name"] = L["Toxigore the Alpha"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		},               
+		[152416] = {
+			["name"] = L["Allseer Oma'kill"],
+			["lastSeen"] = 0,
+			["announced"] = false
+		}, 
+	}
+}
