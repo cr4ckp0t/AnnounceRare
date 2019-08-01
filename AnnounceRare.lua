@@ -33,6 +33,7 @@ local UnitName = _G["UnitName"]
 
 AR.title = GetAddOnMetadata("Lorewalkers", "Title")
 AR.version = GetAddOnMetadata("AnnounceRare", "Version")
+AR.cooldown = 180 -- 3 minutes
 
 local band = bit.band
 local ceil = math.ceil
@@ -56,6 +57,8 @@ local defaults = {
 		announceDeath = true,
 		debug = false,
 		drill = true,
+		lastSeen = nil,
+		lastTime = 0,
 		monitor = true,
 		onLoad = false,
 		output = "CHANNEL",
@@ -72,7 +75,7 @@ local options = {
 		header = {
 			type = "header",
 			order = 1,
-			name = (L["|cffff7d0aVersion:|r %s"]):format(AR.version),
+			name = (L["|cffff7d0a%s:|r %s"]):format(L["Version"], AR.version),
 			width = "full",
 		},
 		general = {
@@ -183,46 +186,6 @@ local options = {
 		},
 	}
 }
-
---[[local rares = {
-	[151884] = "Fungarian Furor", -- Fungarian Furor
-	[135497] = "Fungarian Furor", -- Fungarian Furor
-	[151625] = "The Scrap King", -- The Scrap King
-	[151623] = "The Scrap King (Mounted)", -- The Scrap King (Mounted)
-	[152569] = "Crazed Trogg (Green)", -- Crazed Trogg (Green)
-	[152570] = "Crazed Trogg (Blue)", -- Crazed Trogg (Blue)
-	[149847] = "Crazed Trogg (Orange)", -- Crazed Trogg (Orange)
-
-	-- for the drills
-	[153206] = "Ol' Big Tusk",
-	[154342] = "Arachnoid Harvester (Alt Time)",
-	[154701] = "Gorged Gear-Cruncher",
-	[154739] = "Caustic Mechaslime",
-	[152113] = "The Kleptoboss",
-	[153200] = "Boilburn",
-	[153205] = "Gemicide",
-}]]
-
-local function UpdateDuplicates(id)
-	if id == 151884 then
-		AR.rares[#AR.rares + 1] = 135497
-	elseif id == 135497 then
-		AR.rares[#AR.rares + 1] = 151884
-	elseif id == 151625 then
-		AR.rares[#AR.rares + 1] = 151623
-	elseif id == 151623 then
-		AR.rares[#AR.rares + 1] = 151625
-	elseif id == 152569 then
-		AR.rares[#AR.rares + 1] = 152570
-		AR.rares[#AR.rares + 1] = 149847
-	elseif id == 152570 then
-		AR.rares[#AR.rares + 1] = 152569
-		AR.rares[#AR.rares + 1] = 149847
-	elseif id == 149847 then
-		AR.rares[#AR.rares + 1] = 152569
-		AR.rares[#AR.rares + 1] = 152570
-	end
-end
 
 local function GetTargetId()
 	local guid = UnitGUID("target")
@@ -335,13 +298,38 @@ end
 	end
 end]]
 
+function AR:UpdateDuplicates(id)
+	if id == 151884 then
+		self.rares["mechagon"][135497].announced = true
+	elseif id == 135497 then
+		self.rares["mechagon"][151884].announced = true
+	elseif id == 151625 then
+		self.rares["mechagon"][151623].announced = true
+	elseif id == 151623 then
+		self.rares["mechagon"][151625].announced = true
+	elseif id == 152569 then
+		self.rares["mechagon"][152570].announced = true
+		self.rares["mechagon"][149847].announced = true
+	elseif id == 152570 then
+		self.rares["mechagon"][152569].announced = true
+		self.rares["mechagon"][149847].announced = true
+	elseif id == 149847 then
+		self.rares["mechagon"][152569].announced = true
+		self.rares["mechagon"][152570].announced = true
+	end
+end
+
 function AR:AnnounceRare()
-	-- player target is a rare
 	local tarId, tarCombat = GetTargetId(), UnitAffectingCombat("target")
 	local tarHealth, tarHealthMax = UnitHealth("target"), UnitHealthMax("target")
 	local tarHealthPercent = (tarHealth / tarHealthMax) * 100
 	local tarPos = C_Map_GetPlayerMapPosition(C_Map_GetBestMapForUnit("player"), "player")
 	local genId = GetGeneralChannelNumber()
+
+	-- internal cooldown of 3 minutes to prevent spam
+	if self.lastSeen == tarId and self.lastTime < time() - self.cooldown then
+		return
+	end
 
 	if tarId == nil then
 		self:Print(L["Unable to determine target's GUID."])
@@ -359,7 +347,11 @@ function AR:AnnounceRare()
 			IsInAltTimeline() == true and " " .. L["in the alternative timeline"] or "",
 			UnitAffectingCombat("target") == true and L["has been engaged!"] or L["has NOT been engaged!"]
 		), self.db.global.output:upper(), nil, self.db.global.output:upper() == "CHANNEL" and genId or nil)
-		self.rares[self.zoneText][tarId].lastSeen = time()
+		
+		-- update multiple ids from one sighting
+		if self.zoneText == "mechagon" then self:UpdateDuplicates(tarId) end
+		self.db.global.lastSeen = tarId
+		self.db.global.lastTime = time()
 		self.rares[self.zoneText][tarId].announced = true
 	end
 end
@@ -399,8 +391,10 @@ function AR:CheckZone(...)
 		local mapInfo = C_Map_GetMapInfo(mapId)
 		if (mapId == 1355 or mapInfo["parentMapID"] == 1355) or (mapId == 1462 or mapInfo["parentMapID"] == 1462) and self.correctZone == false then
 			self.correctZone = true
+			self.zoneText = mapId == 1462 and "mechagon" or "nazjatar"
 		elseif ((mapId ~= 1355 and mapInfo["parentMapID"] ~= 1355 and mapId ~= 1462 and mapInfo["parentMapID"] ~= 1462) or mapId == nil) and self.correctZone == true then
 			self.correctZone = false
+			self.zoneText = nil
 		end
 	end
 end
@@ -410,12 +404,10 @@ function AR:Print(msg)
 end
 
 function AR:PLAYER_TARGET_CHANGED()
-	if self.db.global.autoAnnounce and self.correctZone then
+	if self.db.global.autoAnnounce and self.correctZone and self.zoneText ~= nil then
 		local tarId = GetTargetId()
-		if tarId ~= nil then
+		if tarId ~= nil and self.rares[self.zoneText][tarId].announced == false then
 			self:AnnounceRare()
-			self.rares[#self.rares + 1] = tarId
-			UpdateDuplicates(tarId)
 		end
 	end
 end
@@ -424,7 +416,7 @@ function AR:COMBAT_LOG_EVENT_UNFILTERED()
 	local _, subevent, _, _, _, sourceFlags, _, srcGuid, srcName = CombatLogGetCurrentEventInfo()
 	if subevent == "UNIT_DIED" and self.correctZone then
 		local id = GetNPCGUID(srcGuid)
-		if id ~= 151623 and self.db.global.announceDeath == true and then
+		if id ~= 151623 and self.db.global.announceDeath == true then
 			local hours, minutes = GetGameTime()
 			local genId = GetGeneralChannelNumber()
 
@@ -462,7 +454,7 @@ function AR:CHAT_MSG_CHANNEL(msg, ...)
 
 end
 
---[[function AR:CHAT_MSG_MONSTER_EMOTE(msg, ...)
+function AR:CHAT_MSG_MONSTER_EMOTE(msg, ...)
 	if self.db.global.drill and self.correctZone and msg:match("DR-") then
 		local _, _, drill = strsplit(" ", msg)
 		local x, y, rareName
@@ -503,7 +495,7 @@ end
 			self:CreateWaypoint(x, y, ("%s: %s"):format(drill, rareName))
 		end
 	end
-end]]
+end
 
 function AR:PLAYER_ENTERING_WORLD()
 	-- init some stuff
@@ -520,75 +512,20 @@ function AR:PLAYER_ENTERING_WORLD()
 	-- chat command using aceconsole-3.0
 	self:RegisterChatCommand("rare", function(args)
 		local key = self:GetArgs(args, 1)
-		if key == L["auto"] then
-			self.db.global.autoAnnounce = not self.db.global.autoAnnounce
-			self:Print((L["Auto Announce has been %s!"]):format(GetConfigStatus(self.db.global.autoAnnounce)))
-		elseif key == L["death"] then
-			self.db.global.announceDeath = not self.db.global.announceDeath
-			self:Print((L["Death Announcements have been %s!"]):format(GetConfigStatus(self.db.global.announceDeath)))
-		elseif key == L["adv"] then
-			self.db.global.advertise = not self.db.global.advertise
-			self:Print((L["Advertisements have been %s!"]):format(GetConfigStatus(self.db.global.advertise)))
-		elseif key == L["armory"] then
-			self.db.global.armory = not self.db.global.armory
-			self:Print((L["Armory announcements have been %s!"]):format(GetConfigStatus(self.db.global.armory)))
-		--[[elseif key == "drill" then
+		local helpString = "|cffffff00/rare %s|r - %s"
+		if key == L["config"] then
+			LibStub("AceConfigDialog-3.0"):Open("Announce Rare")
+		elseif key == "drill" then
 			self.db.global.drill = not self.db.global.drill
-			self:Print((L["Drill announcements have been %s!"]):format(GetConfigStatus(self.db.global.drill)))]]
+			self:Print((L["Drill announcements have been %s!"]):format(GetConfigStatus(self.db.global.drill)))
 		elseif key == L["help"] or key == "?" then
 			self:Print(L["Command Line Help"])
-			self:Print(L["|cffffff00/rare|r - Announce rare to general chat."])
-			self:Print(L["|cffffff00/rare armory|r - Toggle armory announcements."])
-			self:Print(L["|cffffff00/rare auto|r - Toggle auto announcements."])
-			self:Print(L["|cffffff00/rare death|r - Toggle death announcements."])
-			--self:Print(L["|cffffff00/rare drill|r - Toggle drill announcements."])
-			self:Print(L["|cffffff00/rare load|r - Toggle loading announcement."])
-			self:Print(L["|cffffff00/rare tomtom|r - Toggle TomTom waypoints."])
-			self:Print(L["|cffffff00/rare output (general|say|yell|guild|party|raid)|r - Change output channel."])
-			self:Print(L["|cffffff00/rare status|r or |cffffff00/rare config|r - Print current configuration."])
-			self:Print(L["|cffffff00/rare help|r or |cffffff00/rare ?|r - Print this help again."])
-		elseif key == L["load"] then
-			self.db.global.onLoad = not self.db.global.onLoad
-			self:Print((L["Loading message has been %s!"]):format(GetConfigStatus(self.db.global.onLoad)))
-		elseif key == L["reset"] then
-			self.rares = {}
-			self.lastArmory = 0
-			self:Print(L["Rare list has been reset."])
-		elseif key == L["status"] or key == L["config"] then
-			self:Print((L["AnnounceRare by Crackpotx v%s"]):format(self.version))
-			self:Print(L["For Help: |cffffff00/rare help|r"])
-			self:Print((L["Advertisements: %s"]):format(GetConfigStatus(self.db.global.advertise)))
-			self:Print((L["Armory Announcements: %s"]):format(GetConfigStatus(self.db.global.armory)))
-			self:Print((L["Automatic Announcements: %s"]):format(GetConfigStatus(self.db.global.autoAnnounce)))
-			self:Print((L["Death Announcements: %s"]):format(GetConfigStatus(self.db.global.announceDeath)))
-			--self:Print((L["Drill Notifications: %s"]):format(GetConfigStatus(self.db.global.drill)))
-			self:Print((L["Load Announcement: %s"]):format(GetConfigStatus(self.db.global.onLoad)))
-			self:Print((L["TomTom Waypoints: %s"]):format(GetConfigStatus(self.db.global.tomtom)))
-			self:Print((L["Output Channel: |cffffff00%s|r"]):format(self.db.global.output:upper() == "CHANNEL" and "GENERAL" or self.db.global.output))
-		--[[elseif key == "tomtom" then
+			self:Print(helpString:format(L["help"], L["Announce rare to general chat."]))
+			self:Print(helpString:format(L["config"], L["Display configuration window."]))
+			self:Print(helpString:format(L["help"], L["Print some help."]))
+		elseif key == "tomtom" then
 			self.db.global.tomtom = not self.db.global.tomtom
-			self:Print((L["TomTom waypoints have been %s!"]):format(GetConfigStatus(self.db.global.tomtom)))]]
-		elseif key == L["output"] then
-			local _, value = self:GetArgs(args, 2)
-			if value == "" or value == nil then
-				self:Print(L["You must provide an output channel for the announcements."])
-			else
-				value = value:lower()
-				if not IsValidOutputChannel(value) then
-					self:Print((L["Valid Outputs: %s, %s, %s, %s, %s, %s, %s"]):format(
-						outputChannel:format(L["general"]),
-						outputChannel:format(L["say"]),
-						outputChannel:format(L["yell"]),
-						outputChannel:format(L["guild"]),
-						outputChannel:format(L["officer"]),
-						outputChannel:format(L["party"]),
-						outputChannel:format(L["raid"])
-					))
-				else
-					self.db.global.output = value ~= L["general"] and GetDelocalizedChannel(value) or "CHANNEL"
-					self:Print((L["Changed output to %s!"]):format(outputChannel:format(value:upper())))
-				end
-			end
+			self:Print((L["TomTom waypoints have been %s!"]):format(GetConfigStatus(self.db.global.tomtom)))
 		else 
 			local tarClass = UnitClassification("target")
 			if self.correctZone then
@@ -615,20 +552,20 @@ end
 function AR:OnInitialize()
 	-- setup database and config ui
 	self.db = LibStub("AceDB-3.0"):New("AnnounceRareDB", defaults)
-	LibStub("AceConfig-3.0"):RegisterOptionsTable("AnnounceRare", options)
-	self.optionsUI = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("AnnounceRare", "AnnounceRare")
+	LibStub("AceConfig-3.0"):RegisterOptionsTable("Announce Rare", options)
+	self.optionsUI = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("Announce Rare", "Announce Rare")
 
 	self.debug = self.db.global.debug
 
 	-- register our events
 	--self:RegisterEvent("CHAT_MSG_MONSTER_EMOTE")
 	--self:RegisterEvent("CHAT_MSG_CHANNEL")
-	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+	--self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 	self:RegisterEvent("PLAYER_ENTERING_WORLD")
 	self:RegisterEvent("PLAYER_TARGET_CHANGED")
-	self:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
-	self:RegisterEvent("ZONE_CHANGED", function() AR:CheckZone() end)
-	self:RegisterEvent("ZONE_CHANGED_NEW_AREA", function() AR:CheckZone() end)
+	--self:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
+	--self:RegisterEvent("ZONE_CHANGED", function() AR:CheckZone() end)
+	--self:RegisterEvent("ZONE_CHANGED_NEW_AREA", function() AR:CheckZone() end)
 end
 
 AR.rares = {
