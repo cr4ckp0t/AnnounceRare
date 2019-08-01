@@ -545,14 +545,14 @@ function AR:OnInitialize()
 	self.debug = self.db.global.debug
 
 	-- register our events
-	--self:RegisterEvent("CHAT_MSG_MONSTER_EMOTE")
-	self:RegisterEvent("CHAT_MSG_CHANNEL")
-	--self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+	self:RegisterEvent("CHAT_MSG_MONSTER_EMOTE")
+	--self:RegisterEvent("CHAT_MSG_CHANNEL")
+	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 	self:RegisterEvent("PLAYER_ENTERING_WORLD")
 	self:RegisterEvent("PLAYER_TARGET_CHANGED")
-	--self:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
-	--self:RegisterEvent("ZONE_CHANGED", function() AR:CheckZone() end)
-	--self:RegisterEvent("ZONE_CHANGED_NEW_AREA", function() AR:CheckZone() end)
+	self:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
+	self:RegisterEvent("ZONE_CHANGED", function() AR:CheckZone() end)
+	self:RegisterEvent("ZONE_CHANGED_NEW_AREA", function() AR:CheckZone() end)
 end
 
 AR.rares = {
