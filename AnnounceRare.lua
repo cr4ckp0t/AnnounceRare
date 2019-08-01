@@ -255,7 +255,7 @@ local function DecRound(num, decPlaces)
 end
 
 local function ValidNPC(id)
-	return (AR.rares["mechagon"][id] ~= nil or AR.rares["nazjatar"][id] ~= nil) and true or false
+	return (AR.correctZone and AR.zoneText ~= nil and AR.rares[AR.zoneText] ~= nil and AR.rares[AR.zoneText][id] ~= nil) and true or false
 end
 
 function AR:GetRareIDByName(name)
@@ -398,7 +398,7 @@ function AR:COMBAT_LOG_EVENT_UNFILTERED()
 	local _, subevent, _, _, _, sourceFlags, _, srcGuid, srcName = CombatLogGetCurrentEventInfo()
 	if subevent == "UNIT_DIED" and self.correctZone then
 		local id = GetNPCGUID(srcGuid)
-		if id ~= 151623 and self.db.global.announceDeath == true and self.rares[self.zoneText][id] ~= nil then
+		if id ~= 151623 and self.db.global.announceDeath == true and self.rares[self.zoneText] ~= nil and self.rares[self.zoneText][id] ~= nil then
 			local hours, minutes = GetGameTime()
 			local genId = GetGeneralChannelNumber()
 
@@ -559,409 +559,328 @@ AR.rares = {
 	["mechagon"] = {
 		[151934] = {
 			["name"] = L["Arachnoid Harvester"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[150394] = {
 			["name"] = L["Armored Vaultbot"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[153200] = {
 			["name"] = L["Boilburn"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[151308] = {
 			["name"] = L["Boggac Skullbash"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[152001] = {
 			["name"] = L["Bonepicker"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[154739] = {
 			["name"] = L["Caustic Mechaslime"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[151569] = {
 			["name"] = L["Deepwater Maw"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[150342] = {
 			["name"] = L["Earthbreaker Gulroc"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[154153] = {
 			["name"] = L["Enforcer KX-T57"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[151202] = {
 			["name"] = L["Foul Manifestation"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[151884] = {
 			["name"] = L["Fungarian Furor"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[135497] = {
 			["name"] = L["Fungarian Furor"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[153228] = {
 			["name"] = L["Gear Checker Cogstar"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[153205] = {
 			["name"] = L["Gemicide"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[154701] = {
 			["name"] = L["Gorged Gear-Cruncher"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[151684] = {
 			["name"] = L["Jawbreaker"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[152007] = {
 			["name"] = L["Killsaw"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[151933] = {
 			["name"] = L["Malfunctioning Beastbot"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[151124] = {
 			["name"] = L["Mechagonian Nullifier"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[151672] = {
 			["name"] = L["Mecharantula"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[151627] = {
 			["name"] = L["Mr. Fixthis"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[151296] = {
 			["name"] = L["OOX-Avenger/MG"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[153206] = {
 			["name"] = L["Ol' Big Tusk"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[152764] = {
 			["name"] = L["Oxidized Leachbeast"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[151702] = {
 			["name"] = L["Paol Pondwader"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[150575] = {
 			["name"] = L["Rumblerocks"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[152182] = {
 			["name"] = L["Rustfeather"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[155583] = {
 			["name"] = L["Scrapclaw"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[150937] = {
 			["name"] = L["Seaspit"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[153000] = {
 			["name"] = L["Sparkqueen P'Emp"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[153226] = {
 			["name"] = L["Steel Singer Freza"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[155060] = {
 			["name"] = L["The Doppel Gang"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[152113] = {
 			["name"] = L["The Kleptoboss"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[151940] = {
 			["name"] = L["Uncle T'Rogg"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[151625] = {
 			["name"] = L["The Scrap King"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[151623] = {
 			["name"] = L["The Scrap King (Mounted)"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[154342] = {
 			["name"] = L["Arachnoid Harvester (Alt Time)"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[154225] = {
 			["name"] = L["The Rusty Prince (Alt Time)"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[154968] = {
 			["name"] = L["Armored Vaultbot (Alt Time)"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[152569] = {
 			["name"] = L["Crazed Trogg (Green)"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[152570] = {
 			["name"] = L["Crazed Trogg (Blue)"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 		[149847] = {
 			["name"] = L["Crazed Trogg (Orange)"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},
 	},
 	["nazjatar"] = {
 		[152415] = {
 			["name"] = L["Alga the Eyeless"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},                 
 		[152681] = {
 			["name"] = L["Prince Typhonus"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},                  
 		[153658] = {
 			["name"] = L["Shiz'narasz the Consumer"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},         
 		[151719] = {
 			["name"] = L["Voice in the Deeps"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},               
 		[152794] = {
 			["name"] = L["Amethyst Spireshell"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},              
 		[152756] = {
 			["name"] = L["Daggertooth Terror"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},               
 		[144644] = {
 			["name"] = L["Mirecrawler"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},                      
 		[152465] = {
 			["name"] = L["Needlespine"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},                      
 		[152795] = {
 			["name"] = L["Sandclaw Stoneshell"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},              
 		[150191] = {
 			["name"] = L["Avarius"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},                          
 		[152361] = {
 			["name"] = L["Banescale the Packfather"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},         
 		[149653] = {
 			["name"] = L["Carnivorous Lasher"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},               
 		[152323] = {
 			["name"] = L["King Gakula"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},                      
 		[150583] = {
 			["name"] = L["Rockweed Shambler"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},                
 		[151870] = {
 			["name"] = L["Sandcastle"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},                       
 		[153898] = {
 			["name"] = L["Tidelord Aquatus"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},                 
 		[153928] = {
 			["name"] = L["Tidelord Dispersius"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},              
 		[154148] = {
 			["name"] = L["Tidemistress Leth'sindra"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},         
 		[150468] = {
 			["name"] = L["Vor'koth"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},                         
 		[152566] = {
 			["name"] = L["Anemonar"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},                         
 		[152567] = {
 			["name"] = L["Kelpwillow"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},                       
 		[152397] = {
 			["name"] = L["Oronu"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},                            
 		[152568] = {
 			["name"] = L["Urduu"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},                            
 		[152548] = {
 			["name"] = L["Scale Matriarch Gratinax"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},         
 		[152542] = {
 			["name"] = L["Scale Matriarch Zodia"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},            
 		[152545] = {
 			["name"] = L["Scale Matriarch Vynara"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},           
 		[152712] = {
 			["name"] = L["Blindlight"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},                       
 		[152556] = {
 			["name"] = L["Chasm-Haunter"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},                    
 		[152291] = {
 			["name"] = L["Deepglider"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},                       
 		[152555] = {
 			["name"] = L["Elderspawn Nalaada"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},               
 		[152414] = {
 			["name"] = L["Elder Unu"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},                        
 		[152553] = {
 			["name"] = L["Garnetscale"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},                      
 		[152448] = {
 			["name"] = L["Iridescent Glimmershell"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},          
 		[152682] = {
 			["name"] = L["Prince Vortran"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},                   
 		[152552] = {
 			["name"] = L["Shassera"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},                         
 		[152359] = {
 			["name"] = L["Siltstalker the Packmother"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},       
 		[152290] = {
 			["name"] = L["Soundless"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},                        
 		[152360] = {
 			["name"] = L["Toxigore the Alpha"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		},               
 		[152416] = {
 			["name"] = L["Allseer Oma'kill"],
-			["lastSeen"] = 0,
 			["announced"] = false
 		}, 
 	}
