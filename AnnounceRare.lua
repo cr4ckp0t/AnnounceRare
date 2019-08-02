@@ -114,7 +114,7 @@ local options = {
 					name = L["Debugging"],
 					desc = L["Enable this to assist with fixing a bug or unintended functionality."],
 					get = function(info) return AR.db.global.debug end,
-					set = function(info, value) AR.db.global.debug = value; self.debug = value end,
+					set = function(info, value) AR.db.global.debug = value; AR.debug = value end,
 				},
 			},
 		},
@@ -254,8 +254,9 @@ local function DecRound(num, decPlaces)
 	return format("%." .. (decPlaces or 0) .. "f", num)
 end
 
-local function ValidNPC(id)
-	return (AR.correctZone and AR.zoneText ~= nil and AR.rares[AR.zoneText] ~= nil and AR.rares[AR.zoneText][id] ~= nil) and true or false
+function AR:ValidNPC(id)
+	print(self.rares[tonumber(id)])
+	return (self.correctZone and self.rares[id] ~= nil) and true or false
 end
 
 function AR:GetRareIDByName(name)
@@ -311,7 +312,7 @@ function AR:AnnounceRare()
 	else
 		CTL:SendChatMessage("NORMAL", "AnnounceRare", messageToSend:format(
 			self.db.global.advertise == true and "AnnounceRare: " or "",
-			self.rares[self.zoneText][tarId].name,
+			self.rares[tarId].name,
 			FormatNumber(tarHealth),
 			FormatNumber(tarHealthMax),
 			(tarHealth / tarHealthMax) * 100,
@@ -326,7 +327,7 @@ function AR:AnnounceRare()
 
 		self.db.global.lastSeen = tarId
 		self.db.global.lastTime = time()
-		self.rares[self.zoneText][tarId].announced = true
+		self.rares[tarId].announced = true
 	end
 end
 
@@ -383,9 +384,9 @@ function AR:Print(msg)
 end
 
 function AR:PLAYER_TARGET_CHANGED()
-	if self.db.global.autoAnnounce and self.correctZone and self.zoneText ~= nil then
+	if self.db.global.autoAnnounce and self.correctZone then
 		local tarId = GetTargetId()
-		if tarId ~= nil and ValidNPC(tarId) and self.rares[self.zoneText][tarId].announced == false then
+		if tarId ~= nil and self:ValidNPC(tarId) and self.rares[tarId].announced == false then
 			if self.debug == true then
 				self:DebugPrint((L["Announcing Rare: %s (%s)"]):format(UnitName("target"), tarId))
 			end
@@ -398,7 +399,7 @@ function AR:COMBAT_LOG_EVENT_UNFILTERED()
 	local _, subevent, _, _, _, sourceFlags, _, srcGuid, srcName = CombatLogGetCurrentEventInfo()
 	if subevent == "UNIT_DIED" and self.correctZone then
 		local id = GetNPCGUID(srcGuid)
-		if id ~= 151623 and self.db.global.announceDeath == true and self.rares[self.zoneText] ~= nil and self.rares[self.zoneText][id] ~= nil then
+		if id ~= 151623 and self.db.global.announceDeath == true and self.rares[id] ~= nil then
 			local hours, minutes = GetGameTime()
 			local genId = GetGeneralChannelNumber()
 
@@ -412,7 +413,7 @@ function AR:COMBAT_LOG_EVENT_UNFILTERED()
 				end
 				CTL:SendChatMessage("NORMAL", "AnnounceRare", deathMessage:format(
 					self.db.global.advertise == true and "AnnounceRare: " or "",
-					self.rares[self.zoneText][id].name,
+					self.rares[id].name,
 					IsInAltTimeline() == true and L["in the alternative timeline"] .. " " or "",
 					hours,
 					minutes
@@ -442,13 +443,13 @@ function AR:UPDATE_MOUSEOVER_UNIT(...)
 	end
 end
 
-function AR:CHAT_MSG_CHANNEL(self, msg, ...)
-	if self.db.global.monitor and self.correctZone and self.zoneText ~= nil then
+function AR:CHAT_MSG_CHANNEL(msg, ...)
+	if self.db.global.monitor and self.correctZone then
 
 	end
 end
 
-function AR:CHAT_MSG_MONSTER_EMOTE(self, msg, ...)
+function AR:CHAT_MSG_MONSTER_EMOTE(msg, ...)
 	if self.db.global.drill and self.correctZone and msg:match("DR-") then		
 		local x, y, drill, rareName
 		if msg:match("DR-TR28") then
@@ -509,6 +510,8 @@ function AR:PLAYER_ENTERING_WORLD()
 	self.lastWaypoint = false
 	self.tomtomExpire = false
 
+	self.rares = self:LoadRares()
+
 	-- chat command using aceconsole-3.0
 	self:RegisterChatCommand("rare", function(args)
 		local key = self:GetArgs(args, 1)
@@ -523,7 +526,7 @@ function AR:PLAYER_ENTERING_WORLD()
 			self:Print(helpString:format(L["help"], L["Print some help."]))
 		else 
 			local tarId = GetTargetId()
-			if self.correctZone and self.zoneText ~= nil and ValidNPC(tarId) then
+			if self.correctZone and self.zoneText ~= nil and self:ValidNPC(tarId) then
 				self:AnnounceRare()
 			else
 				self:Print(L["You must be in Mechagon or Nazjatar to use this command."])
@@ -555,8 +558,8 @@ function AR:OnInitialize()
 	self:RegisterEvent("ZONE_CHANGED_NEW_AREA", function() AR:CheckZone() end)
 end
 
-AR.rares = {
-	["mechagon"] = {
+function AR:LoadRares()
+	return {
 		[151934] = {
 			["name"] = L["Arachnoid Harvester"],
 			["announced"] = false
@@ -725,8 +728,6 @@ AR.rares = {
 			["name"] = L["Crazed Trogg (Orange)"],
 			["announced"] = false
 		},
-	},
-	["nazjatar"] = {
 		[152415] = {
 			["name"] = L["Alga the Eyeless"],
 			["announced"] = false
@@ -882,6 +883,6 @@ AR.rares = {
 		[152416] = {
 			["name"] = L["Allseer Oma'kill"],
 			["announced"] = false
-		}, 
+		},
 	}
-}
+end
