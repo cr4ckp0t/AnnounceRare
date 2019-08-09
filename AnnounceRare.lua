@@ -57,7 +57,7 @@ local defaults = {
 		drill = true,
 		lastSeen = nil,
 		lastTime = 0,
-		monitor = true,
+		monitor = false,
 		onLoad = false,
 		output = "CHANNEL",
 		tomtom = true,
@@ -105,6 +105,7 @@ local options = {
 					order = 3,
 					name = L["Monitor Chat"],
 					desc = L["Monitor chat for announcements from other users. This is used as a throttle, or to direct you to a rare via TomTom waypoints (if enabled)."],
+					disabled = true,
 					get = function(info) return AR.db.global.monitor end,
 					set = function(info, value) AR.db.global.monitor = value end,
 				},
@@ -255,17 +256,11 @@ local function DecRound(num, decPlaces)
 end
 
 function AR:ValidNPC(id)
-	print(self.rares[tonumber(id)])
 	return (self.correctZone and self.rares[id] ~= nil) and true or false
 end
 
 function AR:GetRareIDByName(name)
-	for key, value in pairs(self.rares["mechagon"]) do
-		if value.name == name then
-			return key
-		end
-	end
-	for key, value in pairs(self.rares["nazjatar"]) do
+	for key, value in pairs(self.rares) do
 		if value.name == name then
 			return key
 		end
@@ -275,22 +270,22 @@ end
 
 function AR:UpdateDuplicates(id)
 	if id == 151884 then
-		self.rares["mechagon"][135497].announced = true
+		self.rares[135497].announced = true
 	elseif id == 135497 then
-		self.rares["mechagon"][151884].announced = true
+		self.rares[151884].announced = true
 	elseif id == 151625 then
-		self.rares["mechagon"][151623].announced = true
+		self.rares[151623].announced = true
 	elseif id == 151623 then
-		self.rares["mechagon"][151625].announced = true
+		self.rares[151625].announced = true
 	elseif id == 152569 then
-		self.rares["mechagon"][152570].announced = true
-		self.rares["mechagon"][149847].announced = true
+		self.rares[152570].announced = true
+		self.rares[149847].announced = true
 	elseif id == 152570 then
-		self.rares["mechagon"][152569].announced = true
-		self.rares["mechagon"][149847].announced = true
+		self.rares[152569].announced = true
+		self.rares[149847].announced = true
 	elseif id == 149847 then
-		self.rares["mechagon"][152569].announced = true
-		self.rares["mechagon"][152570].announced = true
+		self.rares[152569].announced = true
+		self.rares[152570].announced = true
 	end
 end
 
@@ -439,6 +434,8 @@ function AR:UPDATE_MOUSEOVER_UNIT(...)
 				ceil(tarPos.y * 10000) / 100
 			), self.db.global.output:upper(), nil, self.db.global.output:upper() == "CHANNEL" and genId or nil)
 			self.lastArmory = time()
+		elseif self.db.global.armory and (ttItemName == "Broken Rustbolt Armory" or ttItemName == armoryName) and self.lastArmory > time() - self.cooldown and self.debug then
+			self:DebugPrint(L["Skipping armory announcement due to cooldown."])
 		end
 	end
 end
@@ -500,7 +497,7 @@ end
 
 function AR:PLAYER_ENTERING_WORLD()
 	-- init some stuff
-	self.rares = {}
+	self.rares = self:LoadRares()
 	self.correctZone = false
 	self.lastArmory = 0
 	self:CheckZone()
@@ -510,26 +507,46 @@ function AR:PLAYER_ENTERING_WORLD()
 	self.lastWaypoint = false
 	self.tomtomExpire = false
 
-	self.rares = self:LoadRares()
-
 	-- chat command using aceconsole-3.0
 	self:RegisterChatCommand("rare", function(args)
 		local key = self:GetArgs(args, 1)
 		local helpString = "|cffffff00/rare %s|r - %s"
-		if key == L["config"] then
+		if key == "config" then
 			LibStub("AceConfigDialog-3.0"):Open("Announce Rare")
 			self:Print(L["Displaying configuration options."])
-		elseif key == L["help"] or key == "?" then
+		elseif key == "debug" then
+			self.db.global.debug = not self.db.global.debug
+			self:Print((L["Debugging has been %s!"]):format(GetConfigStatus(self.db.global.debug)))
+		elseif key == "help" or key == "?" then
 			self:Print(L["Command Line Help"])
 			self:Print((L["|cffffff00/rare|r - %s"]):format(L["Announce rare to output channel."]))
-			self:Print(helpString:format(L["config"], L["Display configuration window."]))
-			self:Print(helpString:format(L["help"], L["Print some help."]))
+			self:Print(helpString:format("config", L["Display configuration window."]))
+			self:Print(helpString:format("debug", L["Toggle addon debugging."]))
+			self:Print(helpString:format("help", L["Print some help."]))
+			if self.db.global.debug then
+				self:Print(helpString:format("id", L["Print target information."]))
+			end
+		elseif key == "id" then
+			if not self.db.global.debug then
+				self:Print(L["Debugging must be enabled to use this command."])
+			else
+				local tarId = GetTargetId()
+				if tarId == nil then
+					self:Print(L["Unable to determine target's ID."])
+				else
+					local entry = (self.rares[tarId] ~= nil) and "True" or "False"
+					self:Print(("%s: %s"):format(UnitName("target"), tarId))
+					self:Print(("%s: %s, %s: %s"):format(L["Has Entry"], entry, L["Valid NPC"], tostring(self:ValidNPC(tarId))))
+				end
+			end
 		else 
 			local tarId = GetTargetId()
-			if self.correctZone and self.zoneText ~= nil and self:ValidNPC(tarId) then
+			if self.correctZone and self:ValidNPC(tarId) then
 				self:AnnounceRare()
+			elseif not self.correctZone then
+				self:Print(L["You must be in Mechagon or Nazjatar to announce a rare."])
 			else
-				self:Print(L["You must be in Mechagon or Nazjatar to use this command."])
+				self:Print(L["Target does not meet criteria to be announced."])
 			end
 		end
 	end)
@@ -549,7 +566,7 @@ function AR:OnInitialize()
 
 	-- register our events
 	self:RegisterEvent("CHAT_MSG_MONSTER_EMOTE")
-	--self:RegisterEvent("CHAT_MSG_CHANNEL")
+	self:RegisterEvent("CHAT_MSG_CHANNEL")
 	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 	self:RegisterEvent("PLAYER_ENTERING_WORLD")
 	self:RegisterEvent("PLAYER_TARGET_CHANGED")
