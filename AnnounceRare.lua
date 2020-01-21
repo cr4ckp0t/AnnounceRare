@@ -34,6 +34,12 @@ local UnitName = _G["UnitName"]
 AR.title = GetAddOnMetadata("Lorewalkers", "Title")
 AR.version = GetAddOnMetadata("AnnounceRare", "Version")
 AR.cooldown = 180 -- 3 minutes
+AR.zones = {
+	1462, -- mechagon
+	1355, -- nazjatar
+	1530, -- vale of eternal blossoms
+	1527, -- uldum
+}
 
 local band = bit.band
 local ceil = math.ceil
@@ -305,7 +311,7 @@ function AR:AnnounceRare()
 	elseif AR.db.global.output:upper() == "CHANNEL" and not genId then
 		self:Print(L["Unable to determine your general channel number."])
 	else
-		CTL:SendChatMessage("NORMAL", "AnnounceRare", messageToSend:format(
+		SendChatMessage(messageToSend:format(
 			self.db.global.advertise == true and "AnnounceRare: " or "",
 			self.rares[tarId].name,
 			FormatNumber(tarHealth),
@@ -359,11 +365,13 @@ function AR:CheckZone(...)
 		self.correctZone = false
 	else
 		local mapInfo = C_Map_GetMapInfo(mapId)
-		-- mechagon: 1462, nazjatar: 1355
-		if (mapId == 1355 or mapInfo["parentMapID"] == 1355) or (mapId == 1462 or mapInfo["parentMapID"] == 1462) and self.correctZone == false then
+		-- mechagon: 1462, nazjatar: 1355, vale: 1530, 
+		if (FindInArray(mapId, self.zones) or FindInArray(mapInfo["parentMapID"], self.zones)) and self.correctZone == false then
+		-- if (mapId == 1355 or mapInfo["parentMapID"] == 1355) or (mapId == 1462 or mapInfo["parentMapID"] == 1462) or (mapId == 1530 or mapInfo["parentMapID"] == 1530)and self.correctZone == false then
 			self.correctZone = true
 			self.zoneText = mapId == 1462 and "mechagon" or "nazjatar"
-		elseif ((mapId ~= 1355 and mapInfo["parentMapID"] ~= 1355 and mapId ~= 1462 and mapInfo["parentMapID"] ~= 1462) or mapId == nil) and self.correctZone == true then
+		elseif (FindInArray(mapId, self.zones) == false and FindInArray(mapInfo["parentMapID"], self.zones) == false) and self.correctZone == true then
+		-- elseif ((mapId ~= 1355 and mapInfo["parentMapID"] ~= 1355 and mapId ~= 1462 and mapInfo["parentMapID"] ~= 1462) or mapId == nil) and self.correctZone == true then
 			self.correctZone = false
 			self.zoneText = nil
 		end
@@ -406,7 +414,7 @@ function AR:COMBAT_LOG_EVENT_UNFILTERED()
 				if self.debug == true then
 					self:DebugPrint((L["Announcing Rare Death: %s (%s)"]):format(srcName, id))
 				end
-				CTL:SendChatMessage("NORMAL", "AnnounceRare", deathMessage:format(
+				SendChatMessage(deathMessage:format(
 					self.db.global.advertise == true and "AnnounceRare: " or "",
 					self.rares[id].name,
 					IsInAltTimeline() == true and L["in the alternative timeline"] .. " " or "",
@@ -428,7 +436,7 @@ function AR:UPDATE_MOUSEOVER_UNIT(...)
 			if self.debug then
 				self:DebugPrint((L["Announcing Armory at %s, %s"]):format(ceil(tarPos.x * 10000) / 100, ceil(tarPos.y * 10000) / 100))
 			end
-			CTL:SendChatMessage("NORMAL", "AnnounceRare", (L["%sArmory is located at %s, %s!"]):format(
+			SendChatMessage((L["%sArmory is located at %s, %s!"]):format(
 				ttItemName == "Broken Rustbolt Armory" and L["Broken"] .. " " or "",
 				ceil(tarPos.x * 10000) / 100,
 				ceil(tarPos.y * 10000) / 100
@@ -481,7 +489,7 @@ function AR:CHAT_MSG_MONSTER_EMOTE(msg, ...)
 			return
 		end
 
-		CTL:SendChatMessage("NORMAL", "AnnounceRare", (L["%s (%s) is up at %s %s."]):format(
+		SendChatMessage((L["%s (%s) is up at %s %s."]):format(
 			drill,
 			rareName,
 			x,
@@ -550,10 +558,6 @@ function AR:PLAYER_ENTERING_WORLD()
 			end
 		end
 	end)
-
-	if self.db.global.onLoad == true then
-		self:Print((L["AnnounceRare v%s loaded! Please use |cffffff00/rare help|r for commands."]):format(self.version))
-	end
 end
 
 function AR:OnInitialize()
@@ -573,10 +577,15 @@ function AR:OnInitialize()
 	self:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
 	self:RegisterEvent("ZONE_CHANGED", function() AR:CheckZone() end)
 	self:RegisterEvent("ZONE_CHANGED_NEW_AREA", function() AR:CheckZone() end)
+
+	if self.db.global.onLoad == true then
+		self:Print((L["AnnounceRare v%s loaded! Please use |cffffff00/rare help|r for commands."]):format(self.version))
+	end
 end
 
 function AR:LoadRares()
 	return {
+		-- mechagon
 		[151934] = {
 			["name"] = L["Arachnoid Harvester"],
 			["announced"] = false
@@ -745,6 +754,8 @@ function AR:LoadRares()
 			["name"] = L["Crazed Trogg (Orange)"],
 			["announced"] = false
 		},
+
+		-- nazjatar
 		[152415] = {
 			["name"] = L["Alga the Eyeless"],
 			["announced"] = false
@@ -899,6 +910,434 @@ function AR:LoadRares()
 		},               
 		[152416] = {
 			["name"] = L["Allseer Oma'kill"],
+			["announced"] = false
+		},
+
+		-- uldum
+		[157170] = {
+			["name"] = L["Acolyte Taspu"],
+			["announced"] = false
+		},
+		[158557] = {
+			["name"] = L["Actiss the Deceiver"],
+			["announced"] = false
+		},
+		[151883] = {
+			["name"] = L["Anaua"],
+			["announced"] = false
+		},
+		[155703] = {
+			["name"] = L["Anq'uri the Titanic"],
+			["announced"] = false
+		},
+		[157472] = {
+			["name"] = L["Aphrom the Guise of Madness"],
+			["announced"] = false
+		},
+		[154578] = {
+			["name"] = L["Aqir Flayer"],
+			["announced"] = false
+		},
+		[154576] = {
+			["name"] = L["Aqir Titanus"],
+			["announced"] = false
+		},
+		[162172] = {
+			["name"] = L["Aqir Warcaster"],
+			["announced"] = false
+		},
+		[162370] = {
+			["name"] = L["Armagedillo"],
+			["announced"] = false
+		},
+		[152757] = {
+			["name"] = L["Atekhramun"],
+			["announced"] = false
+		},
+		[162171] = {
+			["name"] = L["Captain Dunewalker"],
+			["announced"] = false
+		},
+		[162147] = {
+			["name"] = L["Corpse Eater"],
+			["announced"] = false
+		},
+		[158594] = {
+			["name"] = L["Doomsayer Vathiris"],
+			["announced"] = false
+		},
+		[158491] = {
+			["name"] = L["Falconer Amenophis"],
+			["announced"] = false
+		},
+		[157120] = {
+			["name"] = L["Fangtaker Orsa"],
+			["announced"] = false
+		},
+		[158633] = {
+			["name"] = L["Gaze of N'Zoth"],
+			["announced"] = false
+		},
+		[158597] = {
+			["name"] = L["High Executor Yothrim"],
+			["announced"] = false
+		},
+		[158528] = {
+			["name"] = L["High Guard Reshef"],
+			["announced"] = false
+		},
+		[162163] = {
+			["name"] = L["High Priest Ytaessis"],
+			["announced"] = false
+		},
+		[151995] = {
+			["name"] = L["Hik-ten the Taskmaster"],
+			["announced"] = false
+		},
+		[160623] = {
+			["name"] = L["Hungering Miasma"],
+			["announced"] = false
+		},
+		[155531] = {
+			["name"] = L["Infested Wastewander Captain"],
+			["announced"] = false
+		},
+		[157134] = {
+			["name"] = L["Ishak of the Four Winds"],
+			["announced"] = false
+		},
+		[156655] = {
+			["name"] = L["Korzaran the Slaughterer"],
+			["announced"] = false
+		},
+		[154604] = {
+			["name"] = L["Lord Aj'qirai"],
+			["announced"] = false
+		},
+		[156078] = {
+			["name"] = L["Magus Rehleth"],
+			["announced"] = false
+		},
+		[157157] = {
+			["name"] = L["Muminah the Incandescent"],
+			["announced"] = false
+		},
+		[152677] = {
+			["name"] = L["Nebet the Ascended"],
+			["announced"] = false
+		},
+		[162196] = {
+			["name"] = L["Obsidian Annihilator"],
+			["announced"] = false
+		},
+		[162142] = {
+			["name"] = L["Qho"],
+			["announced"] = false
+		},
+		[157470] = {
+			["name"] = L["R'aas the Anima Devourer"],
+			["announced"] = false
+		},
+		[156299] = {
+			["name"] = L["R'khuzj The Unfathomable"],
+			["announced"] = false
+		},
+		[162173] = {
+			["name"] = L["R'krox the Runt"],
+			["announced"] = false
+		},
+		[157146] = {
+			["name"] = L["Rotfeaster"],
+			["announced"] = false
+		},
+		[152040] = {
+			["name"] = L["Scoutmaster Moswen"],
+			["announced"] = false
+		},
+		[151948] = {
+			["name"] = L["Senbu the Pridefather"],
+			["announced"] = false
+		},
+		[161033] = {
+			["name"] = L["Shadowmaw"],
+			["announced"] = false
+		},
+		[156654] = {
+			["name"] = L["Shol'thoss the Doomspeaker"],
+			["announced"] = false
+		},
+		[160532] = {
+			["name"] = L["Shoth the Darkened"],
+			["announced"] = false
+		},
+		[157476] = {
+			["name"] = L["Shugshul the Flesh Gorger"],
+			["announced"] = false
+		},
+		[162140] = {
+			["name"] = L["Skikx'traz"],
+			["announced"] = false
+		},
+		[162372] = {
+			["name"] = L["Spirit of Cyrus the Black"],
+			["announced"] = false
+		},
+		[151878] = {
+			["name"] = L["Sun King Nahkotep"],
+			["announced"] = false
+		},
+		[151897] = {
+			["name"] = L["Sun Priestess Nubitt"],
+			["announced"] = false
+		},
+		[151609] = {
+			["name"] = L["Sun Prophet Epaphos"],
+			["announced"] = false
+		},
+		[152657] = {
+			["name"] = L["Tat the Bonechewer"],
+			["announced"] = false
+		},
+		[158636] = {
+			["name"] = L["The Grand Executor"],
+			["announced"] = false
+		},
+		[162170] = {
+			["name"] = L["Warcaster Xeshro"],
+			["announced"] = false
+		},
+		[151852] = {
+			["name"] = L["Watcher Rehu"],
+			["announced"] = false
+		},
+		[157164] = {
+			["name"] = L["Zealot Tekem"],
+			["announced"] = false
+		},
+		[162141] = {
+			["name"] = L["Zuythiz"],
+			["announced"] = false
+		},
+		[157167] = {
+			["name"] = L["Champion Sen-mat"],
+			["announced"] = false
+		},
+		[152431] = {
+			["name"] = L["Kaneb-ti"],
+			["announced"] = false
+		},
+		[152788] = {
+			["name"] = L["Uat-ka the Sun's Wrath"],
+			["announced"] = false
+		},
+		[157188] = {
+			["name"] = L["The Tomb Widow"],
+			["announced"] = false
+		},
+		[162352] = {
+			["name"] = L["Spirit of Dark Ritualist Zakahn"],
+			["announced"] = false
+		},
+		[158531] = {
+			["name"] = L["Corrupted Neferset Guard"],
+			["announced"] = false
+		},
+		[157593] = {
+			["name"] = L["Amalgamation of Flesh"],
+			["announced"] = false
+		},
+		[158595] = {
+			["name"] = L["Thoughtstealer Vos"],
+			["announced"] = false
+		},
+		[157473] = {
+			["name"] = L["Yiphrim the Will Ravager"],
+			["announced"] = false
+		},
+		[157469] = {
+			["name"] = L["Zoth'rum the Intellect Pillager"],
+			["announced"] = false
+		},
+		[157390] = {
+			["name"] = L["R'oyolok the Reality Eater"],
+			["announced"] = false
+		},
+		[162765] = {
+			["name"] = L["Friendly Alpaca"],
+			["announced"] = false
+		},
+		
+		-- vale of the eternal blossom
+		[154087] = {
+			["name"] = L["Zror'um the Infinite"],
+			["announced"] = false
+		},
+		[154106] = {
+			["name"] = L["Quid"],
+			["announced"] = false
+		},
+		[154332] = {
+			["name"] = L["Voidtender Malketh"],
+			["announced"] = false
+		},
+		[154394] = {
+			["name"] = L["Veskan the Fallen"],
+			["announced"] = false
+		},
+		[154447] = {
+			["name"] = L["Brother Meller"],
+			["announced"] = false
+		},
+		[154467] = {
+			["name"] = L["Chief Mek-mek"],
+			["announced"] = false
+		},
+		[154490] = {
+			["name"] = L["Rijz'x the Devourer"],
+			["announced"] = false
+		},
+		[154495] = {
+			["name"] = L["Will of N'Zoth"],
+			["announced"] = false
+		},
+		[154559] = {
+			["name"] = L["Deeplord Zrihj"],
+			["announced"] = false
+		},
+		[154600] = {
+			["name"] = L["Teng the Awakened"],
+			["announced"] = false
+		},
+		[155958] = {
+			["name"] = L["Tashara"],
+			["announced"] = false
+		},
+		[156083] = {
+			["name"] = L["Sanguifang"],
+			["announced"] = false
+		},
+		[157153] = {
+			["name"] = L["Ha-Li"],
+			["announced"] = false
+		},
+		[157160] = {
+			["name"] = L["Houndlord Ren"],
+			["announced"] = false
+		},
+		[157162] = {
+			["name"] = L["Rei Lun"],
+			["announced"] = false
+		},
+		[157171] = {
+			["name"] = L["Heixi the Stonelord"],
+			["announced"] = false
+		},
+		[157176] = {
+			["name"] = L["The Forgotten"],
+			["announced"] = false
+		},
+		[157183] = {
+			["name"] = L["Coagulated Anima"],
+			["announced"] = false
+		},
+		[157266] = {
+			["name"] = L["Kilxl the Gaping Maw"],
+			["announced"] = false
+		},
+		[157267] = {
+			["name"] = L["Escaped Mutation"],
+			["announced"] = false
+		},
+		[157279] = {
+			["name"] = L["Stormhowl"],
+			["announced"] = false
+		},
+		[157287] = {
+			["name"] = L["Dokani Obliterator"],
+			["announced"] = false
+		},
+		[157290] = {
+			["name"] = L["Jade Watcher"],
+			["announced"] = false
+		},
+		[157291] = {
+			["name"] = L["Spymaster Hul'ach"],
+			["announced"] = false
+		},
+		[157443] = {
+			["name"] = L["Xiln the Mountain"],
+			["announced"] = false
+		},
+		[157466] = {
+			["name"] = L["Anh-De the Loyal"],
+			["announced"] = false
+		},
+		[157468] = {
+			["name"] = L["Tisiphon"],
+			["announced"] = false
+		},
+		[160810] = {
+			["name"] = L["Harbinger Il'koxik"],
+			["announced"] = false
+		},
+		[160825] = {
+			["name"] = L["Amber-Shaper Esh'ri"],
+			["announced"] = false
+		},
+		[160826] = {
+			["name"] = L["Hive-Guard Naz'ruzek"],
+			["announced"] = false
+		},
+		[160867] = {
+			["name"] = L["Kzit'kovok"],
+			["announced"] = false
+		},
+		[160868] = {
+			["name"] = L["Harrier Nir'verash"],
+			["announced"] = false
+		},
+		[160872] = {
+			["name"] = L["Destroyer Krox'tazar"],
+			["announced"] = false
+		},
+		[160874] = {
+			["name"] = L["Drone Keeper Ak'thet"],
+			["announced"] = false
+		},
+		[160876] = {
+			["name"] = L["Enraged Amber Elemental"],
+			["announced"] = false
+		},
+		[160878] = {
+			["name"] = L["Buh'gzaki the Blasphemous"],
+			["announced"] = false
+		},
+		[160893] = {
+			["name"] = L["Captain Vor'lek"],
+			["announced"] = false
+		},
+		[160920] = {
+			["name"] = L["Kal'tik the Blight"],
+			["announced"] = false
+		},
+		[160922] = {
+			["name"] = L["Needler Zhesalla"],
+			["announced"] = false
+		},
+		[160930] = {
+			["name"] = L["Infused Amber Ooze"],
+			["announced"] = false
+		},
+		[160968] = {
+			["name"] = L["Jade Colossus"],
+			["announced"] = false
+		},
+		[159087] = {
+			["name"] = L["Corrupted Bonestripper"],
+			["announced"] = false
+		},
+		[160906] = {
+			["name"] = L["Skiver"],
 			["announced"] = false
 		},
 	}
