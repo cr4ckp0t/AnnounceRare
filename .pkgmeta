@@ -19,6 +19,8 @@ externals:
 		url: https://repos.wowace.com/wow/ace3/trunk/AceDB-3.0
 	Libraries\Ace3\AceEvent-3.0:
 		url: https://repos.wowace.com/wow/ace3/trunk/AceEvent-3.0
+	Libraries\Ace3\AceHook-3.0:
+		url: https://repos.wowace.com/wow/ace3/trunk/AceHook-3.0
 	Libraries\Ace3\AceLocale-3.0:
 		url: https://repos.wowace.com/wow/ace3/trunk/AceLocale-3.0
 	Libraries\Ace3\AceTimer-3.0:
