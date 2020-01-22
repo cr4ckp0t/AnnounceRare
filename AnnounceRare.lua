@@ -2,7 +2,6 @@
 -- Announce Rare (BFA 8.3) By Crackpotx (US, Lightbringer)
 -------------------------------------------------------------------------------
 local AR = LibStub("AceAddon-3.0"):NewAddon("AnnounceRare", "AceComm-3.0", "AceConsole-3.0", "AceEvent-3.0", "AceHook-3.0", "AceTimer-3.0")
-local CTL = assert(ChatThrottleLib, "AnnounceRare requires ChatThrottleLib.")
 local L = LibStub("AceLocale-3.0"):GetLocale("AnnounceRare", false)
 
 -- local api cache
@@ -34,6 +33,7 @@ local UnitName = _G["UnitName"]
 AR.title = GetAddOnMetadata("AnnounceRare", "Title")
 AR.version = GetAddOnMetadata("AnnounceRare", "Version")
 AR.cooldown = 180 -- 3 minutes
+AR.linkCooldown = 60 -- 1 minute
 AR.zones = {
 	1462, -- mechagon
 	1355, -- nazjatar
@@ -53,9 +53,9 @@ local tostring = tostring
 local outputChannel = "|cffffff00%s|r"
 local messageToSend = L["%s%s (%s/%s %.2f%%) is at %s %s%s, and %s"]
 local deathMessage = L["%s%s has been slain %sat %02d:%02d server time!"]
-local chatLink = "|HAR2_RARE:%1$d|h|cffffffffRare Found:|r |cFFFFFF00[%2$s]|r|h"
-local chatLinkDead = "|HAR2_DEATH:%1$d|h|cffffffffRare Died:|r |cFFFFFF00[%2$s]|r|h"
-local chatLinkDrill = "|HAR2_DRILL:%1$d|h|cffffffffDrill Found:|r |cFFFFFF00[%2$s]|r|h"
+local chatLink = "|HAR2_RARE:%1$d|h|cffffffffRare Found:|r |cFFFFFF00[%2$sf (Click to Announce)]|r|h"
+local chatLinkDead = "|HAR2_DEATH:%1$d|h|cffffffffRare Died:|r |cFFFFFF00[%2$s (Click to Announce)]|r|h"
+local chatLinkDrill = "|HAR2_DRILL:%1$d|h|cffffffffDrill Found:|r |cFFFFFF00[%2$s (Click to Announce)]|r|h"
 local defaults = {
 	global = {
 		--armory = true,
@@ -73,8 +73,6 @@ local defaults = {
 		tomtom = true,
 	}
 }
-
--- regex for chat monitoring
 
 -- options table
 local options = {
@@ -122,7 +120,7 @@ local options = {
 					get = function(info) return AR.db.global.onLoad end,
 					set = function(info, value) AR.db.global.onLoad = value end,
 				},
-				monitor = {
+				--[[monitor = {
 					type = "toggle",
 					order = 3,
 					name = L["Monitor Chat"],
@@ -130,7 +128,7 @@ local options = {
 					disabled = true,
 					get = function(info) return AR.db.global.monitor end,
 					set = function(info, value) AR.db.global.monitor = value end,
-				},
+				},]]
 				debug = {
 					type = "toggle",
 					order = 4,
@@ -147,7 +145,7 @@ local options = {
 			guiInline = true,
 			name = L["Announcement Options"],
 			args = {
-				notify = {
+				--[[notify = {
 					type = "select",
 					order = 1,
 					name = L["Notification Method"],
@@ -159,7 +157,7 @@ local options = {
 					disabled = true,
 					get = function(info) return AR.db.global.notify end,
 					set = function(info, value) AR.db.global.notify = value end,
-				},
+				},]]
 				output = {
 					type = "select",
 					order = 2,
@@ -352,7 +350,7 @@ function AR:AnnounceDrill(id)
 		return
 	end
 
-	CTL:SendChatMessage("NORMAL", "AnnounceRare", (L["%s (%s) is up at %s %s."]):format(
+	SendChatMessage((L["%s (%s) is up at %s %s."]):format(
 		drill,
 		rareName,
 		x,
@@ -376,7 +374,7 @@ function AR:AnnounceRare()
 	elseif AR.db.global.output:upper() == "CHANNEL" and not genId then
 		self:Print(L["Unable to determine your general channel number."])
 	else
-		CTL:SendChatMessage("NORMAL", "AnnounceRare", messageToSend:format(
+		SendChatMessage(messageToSend:format(
 			self.db.global.advertise == true and "AnnounceRare: " or "",
 			self.rares[tarId].name,
 			FormatNumber(tarHealth),
@@ -409,7 +407,7 @@ function AR:AnnounceDeath(id)
 		if self.debug == true then
 			self:DebugPrint((L["Announcing Rare Death: %s (%s)"]):format(srcName, id))
 		end
-		CTL:SendChatMessage("NORMAL", "AnnounceRare", deathMessage:format(
+		SendChatMessage(deathMessage:format(
 			self.db.global.advertise == true and "AnnounceRare: " or "",
 			self.rares[id].name,
 			IsInAltTimeline() == true and L["in the alternative timeline"] .. " " or "",
@@ -473,8 +471,18 @@ end
 function AR:PLAYER_TARGET_CHANGED()
 	if self.db.global.autoAnnounce and self.correctZone then
 		local tarId = GetTargetId()
+		-- internal cooldown of 1 minute to prevent spam
+		if self.lastSeen == tarId and self.lastTime < time() - self.linkCooldown then
+			if self.db.global.debug then
+				self:DebugPrint(L["Chat link skipped due to throttle."])
+			end
+			return
+		end
+
 		if tarId ~= nil and self:ValidNPC(tarId) and self.rares[tarId].announced == false then
 			self:Print(chatLink:format(tarId, self.rares[tarId].name))
+			self.db.global.lastSeen = tarId
+			self.db.global.lastTime = time()
 		end
 	end
 end
@@ -483,7 +491,7 @@ function AR:COMBAT_LOG_EVENT_UNFILTERED()
 	local _, subevent, _, _, _, sourceFlags, _, srcGuid, srcName = CombatLogGetCurrentEventInfo()
 	if subevent == "UNIT_DIED" and self.correctZone then
 		local id = GetNPCGUID(srcGuid)
-		if id ~= 151623 and --[[self.db.global.announceDeath == true]] self.rares[id] ~= nil then
+		if id ~= 151623 and self.rares[id] ~= nil then
 			self:Print(chatLinkDead:format(id, self.rares[id].name))
 		end
 	end
