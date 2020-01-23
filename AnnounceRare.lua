@@ -364,14 +364,15 @@ function AR:AnnounceRare()
 	local tarPos = C_Map_GetPlayerMapPosition(C_Map_GetBestMapForUnit("player"), "player")
 	local genId = GetGeneralChannelNumber()
 
+	-- unable to determine the target's id
+	if not tarId or tarId == nil then return end
+
 	-- internal cooldown of 3 minutes to prevent spam
 	if self.lastSeen == tarId and self.lastTime < time() - self.cooldown then
 		return
 	end
 
-	if tarId == nil then
-		self:Print(L["Unable to determine target's GUID."])
-	elseif AR.db.global.output:upper() == "CHANNEL" and not genId then
+	if AR.db.global.output:upper() == "CHANNEL" and not genId then
 		self:Print(L["Unable to determine your general channel number."])
 	else
 		SendChatMessage(messageToSend:format(
@@ -471,6 +472,9 @@ end
 function AR:PLAYER_TARGET_CHANGED()
 	if self.db.global.autoAnnounce and self.correctZone then
 		local tarId = GetTargetId()
+
+		if not tarId or tarId == nil then return end
+
 		-- internal cooldown of 1 minute to prevent spam
 		if self.lastSeen == tarId and self.lastTime < time() - self.linkCooldown then
 			if self.db.global.debug then
