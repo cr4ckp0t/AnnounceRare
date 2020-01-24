@@ -270,13 +270,18 @@ end
 
 function AR:ParseLink(link, text, button, frame)
 	local linkType, id = strsplit(":", link)
+
+	if self.db.global.debug then
+		self:DebugPrint((L["Link Type: %s, ID: %s"]):format(linkType, id))
+	end
+	
 	if linkType == "AR2_RARE" then
-		self.rares[id].announced = true
+		self.rares[tonumber(id)].announced = true
 		self:AnnounceRare()
 	elseif linkType == "AR2_DEATH" then
-		self:AnnounceDeath(id)
+		self:AnnounceDeath(tonumber(id))
 	elseif linkType == "AR2_DRILL" then
-		self:AnnounceDrill(id)
+		self:AnnounceDrill(tonumber(id))
 	else
 		return self.hooks["SetItemRef"](link, text, button, frame)
 	end
@@ -406,7 +411,7 @@ function AR:AnnounceDeath(id)
 		self:Print(L["Unable to determine your general channel number."])
 	else
 		if self.debug == true then
-			self:DebugPrint((L["Announcing Rare Death: %s (%s)"]):format(srcName, id))
+			self:DebugPrint((L["Announcing Rare Death: %s"]):format(self.rares[id].name))
 		end
 		SendChatMessage(deathMessage:format(
 			self.db.global.advertise == true and "AnnounceRare: " or "",
