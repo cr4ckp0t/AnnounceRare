@@ -10,6 +10,7 @@ local C_Map_GetBestMapForUnit = C_Map.GetBestMapForUnit
 local C_Map_GetMapInfo = C_Map.GetMapInfo
 local C_Map_GetPlayerMapPosition = C_Map.GetPlayerMapPosition
 local CombatLogGetCurrentEventInfo = _G["CombatLogGetCurrentEventInfo"]
+local CreateFrame = _G["CreateFrame"]
 local EnumerateServerChannels = _G["EnumerateServerChannels"]
 local GetAddOnMetadata = _G["GetAddOnMetadata"]
 local GetChannelName = _G["GetChannelName"]
@@ -489,7 +490,11 @@ function AR:PLAYER_TARGET_CHANGED()
 		end
 
 		if tarId ~= nil and self:ValidNPC(tarId) and self.rares[tarId].announced == false then
-			self:Print(chatLink:format(tarId, self.rares[tarId].name))
+			if self.db.global.notify == "chatLink" then
+				self:Print(chatLink:format(tarId, self.rares[tarId].name))
+			else
+
+			end
 			self.db.global.lastSeen = tarId
 			self.db.global.lastTime = time()
 		end
@@ -501,7 +506,11 @@ function AR:COMBAT_LOG_EVENT_UNFILTERED()
 	if subevent == "UNIT_DIED" and self.correctZone then
 		local id = GetNPCGUID(srcGuid)
 		if id ~= 151623 and self.rares[id] ~= nil then
-			self:Print(chatLinkDead:format(id, self.rares[id].name))
+			if self.db.global.notify == "chatLink" then
+				self:Print(chatLinkDead:format(id, self.rares[id].name))
+			else
+
+			end
 		end
 	end
 end
@@ -540,7 +549,11 @@ function AR:CHAT_MSG_MONSTER_EMOTE(msg, ...)
 			return
 		end
 
-		self:Print(chatLinkDrill:format(id, rareName))
+		if self.db.global.notify == "chatLink" then
+			self:Print(chatLinkDrill:format(id, rareName))
+		else
+
+		end
 		
 		-- create waypoint
 		if self.db.global.tomtom and self.tomtom then
