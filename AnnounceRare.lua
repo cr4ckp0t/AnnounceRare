@@ -9,6 +9,7 @@ local C_ChatInfo_GetNumActiveChannels = C_ChatInfo.GetNumActiveChannels
 local C_Map_GetBestMapForUnit = C_Map.GetBestMapForUnit
 local C_Map_GetMapInfo = C_Map.GetMapInfo
 local C_Map_GetPlayerMapPosition = C_Map.GetPlayerMapPosition
+local C_PvP_IsWarModeActive = C_PvP.IsWarModeActive
 local CombatLogGetCurrentEventInfo = _G["CombatLogGetCurrentEventInfo"]
 local CreateFrame = _G["CreateFrame"]
 local EnumerateServerChannels = _G["EnumerateServerChannels"]
@@ -52,7 +53,7 @@ local tonumber = tonumber
 local tostring = tostring
 
 local outputChannel = "|cffffff00%s|r"
-local messageToSend = L["%s%s (%s/%s %.2f%%) is at %s %s%s, and %s"]
+local messageToSend = L["%s%s (%s/%s %.2f%%) is at %s %s%s (War Mode: %s), and %s"]
 local deathMessage = L["%s%s has been slain %sat %02d:%02d server time!"]
 local chatLink = "|HAR2_RARE:%1$d|h|cffffffffRare Found:|r |cFFFFFF00[%2$sf (Click to Announce)]|r|h"
 local chatLinkDead = "|HAR2_DEATH:%1$d|h|cffffffffRare Died:|r |cFFFFFF00[%2$s (Click to Announce)]|r|h"
@@ -390,6 +391,7 @@ function AR:AnnounceRare()
 			ceil(tarPos.x * 10000) / 100,
 			ceil(tarPos.y * 10000) / 100,
 			IsInAltTimeline() == true and " " .. L["in the alternative timeline"] or "",
+			C_PvP_IsWarModeActive() == true and L["ON"] or L["OFF"],
 			UnitAffectingCombat("target") == true and L["has been engaged!"] or L["has NOT been engaged!"]
 		), self.db.global.output:upper(), nil, self.db.global.output:upper() == "CHANNEL" and genId or nil)
 		

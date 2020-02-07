@@ -6,7 +6,7 @@ local L = AceLocale:NewLocale("AnnounceRare", "enUS", true, true)
 if not L then return end
 
 L["%s (%s) is up at %s %s."] = true
-L["%s%s (%s/%s %.2f%%) is at %s %s%s, and %s"] = true
+L["%s%s (%s/%s %.2f%%) is at %s %s%s (War Mode: %s), and %s"] = true
 L["%s%s has been slain %sat %02d:%02d server time!"] = true
 L["AR2 Log"] = true
 L["AR2"] = true
@@ -148,6 +148,8 @@ L["Nebet the Ascended"] = true
 L["Needler Zhesalla"] = true
 L["Needlespine"] = true
 L["Notification Method"] = true
+L["OFF"] = true
+L["ON"] = true
 L["OOX-Avenger/MG"] = true
 L["Obsidian Annihilator"] = true
 L["Officer"] = true
