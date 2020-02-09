@@ -41,6 +41,7 @@ AR.zones = {
 	1355, -- nazjatar
 	1530, -- vale of eternal blossoms
 	1527, -- uldum
+	1571, -- uldum (vision zone)
 }
 
 local band = bit.band
@@ -616,6 +617,12 @@ function AR:PLAYER_ENTERING_WORLD()
 					self:Print(("%s: %s, %s: %s"):format(L["Has Entry"], entry, L["Valid NPC"], tostring(self:ValidNPC(tarId))))
 				end
 			end
+		elseif key == "zone" then
+			if not self.db.global.debug then
+				self:Print(L["Debugging must be enabled to use this command."])
+			else
+				self:Print(("%s: %s"):format(L["Zone ID:"], C_Map_GetBestMapForUnit("player")))
+			end
 		else 
 			local tarId = GetTargetId()
 			if self.correctZone and self:ValidNPC(tarId) then
@@ -1085,6 +1092,11 @@ function AR:LoadRares()
 		[156078] = {
 			["name"] = L["Magus Rehleth"],
 			["announced"] = false
+		},
+		-- Manipulator Yar'shath: 161451
+		[161451] = {
+			["name"] = L["Manipulator Yar'shath"],
+			["announced"] = false,
 		},
 		[157157] = {
 			["name"] = L["Muminah the Incandescent"],
