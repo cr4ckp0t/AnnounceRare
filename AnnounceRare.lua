@@ -9,7 +9,6 @@ local C_ChatInfo_GetNumActiveChannels = C_ChatInfo.GetNumActiveChannels
 local C_Map_GetBestMapForUnit = C_Map.GetBestMapForUnit
 local C_Map_GetMapInfo = C_Map.GetMapInfo
 local C_Map_GetPlayerMapPosition = C_Map.GetPlayerMapPosition
-local C_PvP_IsWarModeActive = C_PvP.IsWarModeActive
 local CombatLogGetCurrentEventInfo = _G["CombatLogGetCurrentEventInfo"]
 local CreateFrame = _G["CreateFrame"]
 local EnumerateServerChannels = _G["EnumerateServerChannels"]
@@ -35,6 +34,7 @@ local UnitName = _G["UnitName"]
 AR.title = GetAddOnMetadata("AnnounceRare", "Title")
 AR.version = GetAddOnMetadata("AnnounceRare", "Version")
 AR.cooldown = 180 -- 3 minutes
+AR.mouseCooldown = 30 -- 30 seconds
 AR.linkCooldown = 60 -- 1 minute
 AR.zones = {
 	1462, -- mechagon
@@ -42,6 +42,11 @@ AR.zones = {
 	1530, -- vale of eternal blossoms
 	1527, -- uldum
 	1571, -- uldum (vision zone)
+}
+
+AR.caches = {
+	L["Amathet Cache"],
+	L["Black Empire Cache"],
 }
 
 local band = bit.band
@@ -54,23 +59,20 @@ local tonumber = tonumber
 local tostring = tostring
 
 local outputChannel = "|cffffff00%s|r"
-local messageToSend = L["%s%s (%s/%s %.2f%%) is at %s %s%s (War Mode: %s), and %s"]
+local messageToSend = L["%s%s (%s/%s %.2f%%) is at %s %s%s and %s"]
 local deathMessage = L["%s%s has been slain %sat %02d:%02d server time!"]
 local chatLink = "|HAR2_RARE:%1$d|h|cffffffffRare Found:|r |cFFFFFF00[%2$sf (Click to Announce)]|r|h"
 local chatLinkDead = "|HAR2_DEATH:%1$d|h|cffffffffRare Died:|r |cFFFFFF00[%2$s (Click to Announce)]|r|h"
 local chatLinkDrill = "|HAR2_DRILL:%1$d|h|cffffffffDrill Found:|r |cFFFFFF00[%2$s (Click to Announce)]|r|h"
+
 local defaults = {
 	global = {
-		--armory = true,
-		--autoAnnounce = false,
 		advertise = false,
-		--announceDeath = true,
 		debug = false,
 		drill = true,
 		lastSeen = nil,
 		lastTime = 0,
 		monitor = false,
-		notify = "chatLink",
 		onLoad = false,
 		output = "CHANNEL",
 		tomtom = true,
@@ -92,7 +94,7 @@ local options = {
 		apiChanges = {
 			type = "description",
 			order = 2,
-			name = L["Beginning in WOW patch 8.2.5 the API function |cffffff00SendChatMessage|r is now a protected. This essentially means that user input is required to trigger the chat message, otherwise you will receive an \"ADDON_ACTION_BLOCKED\" error you may have seen with previous versions of AR.\n\n|cffff0000For now only chat links will work for notifications. I will add the popup button in a later version.|r"],
+			name = L["Beginning in WOW patch 8.2.5 the API function |cffffff00SendChatMessage|r is now a protected. This essentially means that user input is required to trigger the chat message, otherwise you will receive an \"ADDON_ACTION_BLOCKED\" error you may have seen with previous versions of AR."],
 			width = "full", 
 		},
 		space = {
@@ -123,15 +125,6 @@ local options = {
 					get = function(info) return AR.db.global.onLoad end,
 					set = function(info, value) AR.db.global.onLoad = value end,
 				},
-				--[[monitor = {
-					type = "toggle",
-					order = 3,
-					name = L["Monitor Chat"],
-					desc = L["Monitor chat for announcements from other users. This is used as a throttle, or to direct you to a rare via TomTom waypoints (if enabled)."],
-					disabled = true,
-					get = function(info) return AR.db.global.monitor end,
-					set = function(info, value) AR.db.global.monitor = value end,
-				},]]
 				debug = {
 					type = "toggle",
 					order = 4,
@@ -148,22 +141,9 @@ local options = {
 			guiInline = true,
 			name = L["Announcement Options"],
 			args = {
-				--[[notify = {
-					type = "select",
-					order = 1,
-					name = L["Notification Method"],
-					desc = L["How do you want to be notified of a rare NPC?"],
-					values = {
-						["chatLink"] = L["Chat Links"],
-						["popup"] = L["Popup Button"],
-					},
-					disabled = true,
-					get = function(info) return AR.db.global.notify end,
-					set = function(info, value) AR.db.global.notify = value end,
-				},]]
 				output = {
 					type = "select",
-					order = 2,
+					order = 1,
 					name = L["Channel Output"],
 					desc = L["Channel to send the messages to."],
 					values = {
@@ -178,14 +158,9 @@ local options = {
 					get = function(info) return AR.db.global.output end,
 					set = function(info, value) AR.db.global.output = value end,
 				},
-				spacer = {
-					type = "description",
-					name = "",
-					order = 3,
-				},
 				drill = {
 					type = "toggle",
-					order = 4,
+					order = 2,
 					name = L["Drill Announcements"],
 					desc = L["Announce drill sites to let people know what mob is about to be available."],
 					get = function(info) return AR.db.global.drill end,
@@ -193,7 +168,7 @@ local options = {
 				},
 				tomtom = {
 					type = "toggle",
-					order = 5,
+					order = 3,
 					name = L["TomTom Waypoints"],
 					desc = L["Automatically create TomTom waypoints for you when a drill site is activated.\n\n|cffff0000REQUIRES TOMTOM ADDON!|r"],
 					disabled = function() return not AR.db.global.drill end,
@@ -392,7 +367,6 @@ function AR:AnnounceRare()
 			ceil(tarPos.x * 10000) / 100,
 			ceil(tarPos.y * 10000) / 100,
 			IsInAltTimeline() == true and " " .. L["in the alternative timeline"] or "",
-			C_PvP_IsWarModeActive() == true and L["ON"] or L["OFF"],
 			UnitAffectingCombat("target") == true and L["has been engaged!"] or L["has NOT been engaged!"]
 		), self.db.global.output:upper(), nil, self.db.global.output:upper() == "CHANNEL" and genId or nil)
 		
@@ -425,6 +399,19 @@ function AR:AnnounceDeath(id)
 			minutes
 		), self.db.global.output:upper(), nil, self.db.global.output:upper() == "CHANNEL" and genId or nil)
 	end
+end
+
+function AR:AnnounceMouseover(name)
+	local genId = GetGeneralChannelNumber()
+	local tarPos = C_Map_GetPlayerMapPosition(C_Map_GetBestMapForUnit("player"), "player")
+	if self.debug then
+		self:DebugPrint((L["Announcing Armory at %s, %s"]):format(ceil(tarPos.x * 10000) / 100, ceil(tarPos.y * 10000) / 100))
+	end
+	SendChatMessage((L["%sArmory is located at %s, %s!"]):format(
+		ttItemName == "Broken Rustbolt Armory" and L["Broken"] .. " " or "",
+		ceil(tarPos.x * 10000) / 100,
+		ceil(tarPos.y * 10000) / 100
+	), self.db.global.output:upper(), nil, self.db.global.output:upper() == "CHANNEL" and genId or nil)
 end
 
 function AR:CreateWaypoint(x, y, name)
@@ -471,7 +458,7 @@ function AR:CheckZone(...)
 end
 
 function AR:DebugPrint(msg)
-	print(("|cffffffff%s:|r |cffffff00%s|r"):format(L["AR2 Log"], msg))
+	print(("|cffff7d0a%s:|r |cffffff00%s|r"):format(L["AR2 Log"], msg))
 end
 
 function AR:Print(msg)
@@ -485,7 +472,7 @@ function AR:PLAYER_TARGET_CHANGED()
 		if not tarId or tarId == nil then return end
 
 		-- internal cooldown of 1 minute to prevent spam
-		if self.lastSeen == tarId and self.lastTime < time() - self.linkCooldown then
+		if self.db.global.lastSeen == tarId and self.db.global.lastTime < time() - self.linkCooldown then
 			if self.db.global.debug then
 				self:DebugPrint(L["Chat link skipped due to throttle."])
 			end
@@ -493,11 +480,13 @@ function AR:PLAYER_TARGET_CHANGED()
 		end
 
 		if tarId ~= nil and self:ValidNPC(tarId) and self.rares[tarId].announced == false then
-			if self.db.global.notify == "chatLink" then
-				self:Print(chatLink:format(tarId, self.rares[tarId].name))
-			else
-
+			if UnitIsDead("target") then
+				if self.db.global.debug then
+					self:DebugPrint(L["Chat link skipped due to target being dead."])
+				end
+				return
 			end
+			self:Print(chatLink:format(tarId, self.rares[tarId].name))
 			self.db.global.lastSeen = tarId
 			self.db.global.lastTime = time()
 		end
@@ -515,12 +504,6 @@ function AR:COMBAT_LOG_EVENT_UNFILTERED()
 
 			end
 		end
-	end
-end
-
-function AR:CHAT_MSG_CHANNEL(msg, ...)
-	if self.db.global.monitor and self.correctZone then
-
 	end
 end
 
@@ -551,12 +534,7 @@ function AR:CHAT_MSG_MONSTER_EMOTE(msg, ...)
 		else
 			return
 		end
-
-		if self.db.global.notify == "chatLink" then
-			self:Print(chatLinkDrill:format(id, rareName))
-		else
-
-		end
+		self:Print(chatLinkDrill:format(id, rareName))
 		
 		-- create waypoint
 		if self.db.global.tomtom and self.tomtom then
@@ -577,7 +555,6 @@ function AR:PLAYER_ENTERING_WORLD()
 	-- init some stuff
 	self.rares = self:LoadRares()
 	self.correctZone = false
-	self.lastArmory = 0
 	self:CheckZone()
 
 	-- tomtom waypoint settings
@@ -625,8 +602,10 @@ function AR:PLAYER_ENTERING_WORLD()
 			end
 		else 
 			local tarId = GetTargetId()
-			if self.correctZone and self:ValidNPC(tarId) then
+			if self.correctZone and self:ValidNPC(tarId) and not UnitIsDead("target") then
 				self:AnnounceRare()
+			elseif self.correctZone and self:ValidNPC(tarId) and UnitIsDead("target") then
+				self:Print(L["You cannot announce a dead rare's position."])
 			elseif not self.correctZone then
 				self:Print(L["You must be in Mechagon or Nazjatar to announce a rare."])
 			else
@@ -646,7 +625,6 @@ function AR:OnInitialize()
 
 	-- register our events
 	self:RegisterEvent("CHAT_MSG_MONSTER_EMOTE")
-	self:RegisterEvent("CHAT_MSG_CHANNEL")
 	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 	self:RegisterEvent("PLAYER_ENTERING_WORLD")
 	self:RegisterEvent("PLAYER_TARGET_CHANGED")
@@ -1093,7 +1071,6 @@ function AR:LoadRares()
 			["name"] = L["Magus Rehleth"],
 			["announced"] = false
 		},
-		-- Manipulator Yar'shath: 161451
 		[161451] = {
 			["name"] = L["Manipulator Yar'shath"],
 			["announced"] = false,
@@ -1108,6 +1085,11 @@ function AR:LoadRares()
 		},
 		[162196] = {
 			["name"] = L["Obsidian Annihilator"],
+			["announced"] = false
+		},
+		-- Portalkeeper Jin'tashal: 161467
+		[161467] = {
+			["name"] = L["Portalkeeper Jin'tashal"],
 			["announced"] = false
 		},
 		[162142] = {
