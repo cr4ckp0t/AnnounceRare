@@ -498,11 +498,7 @@ function AR:COMBAT_LOG_EVENT_UNFILTERED()
 	if subevent == "UNIT_DIED" and self.correctZone then
 		local id = GetNPCGUID(srcGuid)
 		if id ~= 151623 and self.rares[id] ~= nil then
-			if self.db.global.notify == "chatLink" then
-				self:Print(chatLinkDead:format(id, self.rares[id].name))
-			else
-
-			end
+			self:Print(chatLinkDead:format(id, self.rares[id].name))
 		end
 	end
 end
@@ -580,6 +576,7 @@ function AR:PLAYER_ENTERING_WORLD()
 			self:Print(helpString:format("help", L["Print some help."]))
 			if self.db.global.debug then
 				self:Print(helpString:format("id", L["Print target information."]))
+				self:Print(helpString:format("zone", L["Print zone information."]))
 			end
 		elseif key == "id" then
 			if not self.db.global.debug then
@@ -607,7 +604,7 @@ function AR:PLAYER_ENTERING_WORLD()
 			elseif self.correctZone and self:ValidNPC(tarId) and UnitIsDead("target") then
 				self:Print(L["You cannot announce a dead rare's position."])
 			elseif not self.correctZone then
-				self:Print(L["You must be in Mechagon or Nazjatar to announce a rare."])
+				self:Print(L["You must be in Mechagon, Nazjatar, Uldum, or the Vale of Eternal Blossoms to announce a rare."])
 			else
 				self:Print(L["Target does not meet criteria to be announced."])
 			end
@@ -1236,6 +1233,11 @@ function AR:LoadRares()
 		},
 		[154106] = {
 			["name"] = L["Quid"],
+			["announced"] = false
+		},
+		-- Shadow-Walker Yash'gth: 159318
+		[159318] = {
+			["name"] = L["Shadow-Walker Yash'gth"],
 			["announced"] = false
 		},
 		[154332] = {
