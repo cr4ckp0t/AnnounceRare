@@ -44,11 +44,6 @@ AR.zones = {
 	1571, -- uldum (vision zone)
 }
 
-AR.caches = {
-	L["Amathet Cache"],
-	L["Black Empire Cache"],
-}
-
 local band = bit.band
 local ceil = math.ceil
 local match = string.match
@@ -61,9 +56,9 @@ local tostring = tostring
 local outputChannel = "|cffffff00%s|r"
 local messageToSend = L["%s%s (%s/%s %.2f%%) is at %s %s%s and %s"]
 local deathMessage = L["%s%s has been slain %sat %02d:%02d server time!"]
-local chatLink = "|HAR2_RARE:%1$d|h|cffffffffRare Found:|r |cFFFFFF00[%2$sf (Click to Announce)]|r|h"
-local chatLinkDead = "|HAR2_DEATH:%1$d|h|cffffffffRare Died:|r |cFFFFFF00[%2$s (Click to Announce)]|r|h"
-local chatLinkDrill = "|HAR2_DRILL:%1$d|h|cffffffffDrill Found:|r |cFFFFFF00[%2$s (Click to Announce)]|r|h"
+local chatLink = "|HAR2_RARE:%1$d|h|cffffffffRare Found:|r |cFFFFFF00[%2$s (" .. L["Click to Announce"] .. ")]|r|h"
+local chatLinkDead = "|HAR2_DEATH:%1$d|h|cffffffffRare Died:|r |cFFFFFF00[%2$s (" .. L["Click to Announce"] .. ")]|r|h"
+local chatLinkDrill = "|HAR2_DRILL:%1$d|h|cffffffffDrill Found:|r |cFFFFFF00[%2$s (" .. L["Click to Announce"] .. ")]|r|h"
 
 local defaults = {
 	global = {
@@ -73,6 +68,7 @@ local defaults = {
 		lastSeen = nil,
 		lastTime = 0,
 		monitor = false,
+		notify = "link",
 		onLoad = false,
 		output = "CHANNEL",
 		tomtom = true,
@@ -109,9 +105,21 @@ local options = {
 			name = L["General Options"],
 			guiInline = true,
 			args = {
+				notify = {
+					type = "select",
+					order = 1,
+					name = L["Notification Method"],
+					desc = L["How do you want to be notified of a rare?\n\nChat Link (Default) - Prints a link in your default chat frame that you click to send the announcement.\nButton - A button will appear when you target a rare to send the announcement."],
+					values = {
+						["link"] = L["Chat Link"],
+						--["btn"] = L["Button"],
+					},
+					get = function(info) return AR.db.global.notify end,
+					set = function(info, value) AR.db.global.notify = value end,
+				},
 				advertise = {
 					type = "toggle",
-					order = 1,
+					order = 2,
 					name = L["Advertise AR"],
 					desc = L["Adds a prefix to chat messages with the name of the addon."],
 					get = function(info) return AR.db.global.advertise end,
@@ -119,7 +127,7 @@ local options = {
 				},
 				onLoad = {
 					type = "toggle",
-					order = 2,
+					order = 3,
 					name = L["Loading Message"],
 					desc = L["Display a loading message when the addon first loads."],
 					get = function(info) return AR.db.global.onLoad end,
@@ -568,6 +576,8 @@ function AR:PLAYER_ENTERING_WORLD()
 		elseif key == "debug" then
 			self.db.global.debug = not self.db.global.debug
 			self:Print((L["Debugging has been %s!"]):format(GetConfigStatus(self.db.global.debug)))
+		elseif key == "frame" then
+			self.frame:Show()
 		elseif key == "help" or key == "?" then
 			self:Print(L["Command Line Help"])
 			self:Print((L["|cffffff00/rare|r - %s"]):format(L["Announce rare to output channel."]))
@@ -612,6 +622,25 @@ function AR:PLAYER_ENTERING_WORLD()
 	end)
 end
 
+function AR:InitFrame()
+	self.frame:ClearAllPoints()
+	self.frame:SetPoint("CENTER")
+	self.frame:SetWidth(36)
+	self.frame:SetHeight(36)
+
+	local button = CreateFrame("Button", "AR_AnnounceButton", _G["AR_Frame"])
+	button:SetHeight(36)
+	button:SetWidth(36)
+	button:SetPoint("TOP", 0, -3)
+
+	local image = button:CreateTexture(nil, "BACKGROUND")
+	image:SetAllPoints()
+	image:SetTexture("Interface\\Addons\\AnnounceRare\\Textures\\icon.tga")
+
+	button:RegisterForClicks("AnyDown")
+	self.frame.button = button
+end
+
 function AR:OnInitialize()
 	-- setup database and config ui
 	self.db = LibStub("AceDB-3.0"):New("AnnounceRareDB", defaults)
@@ -619,6 +648,12 @@ function AR:OnInitialize()
 	self.optionsUI = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("Announce Rare", "Announce Rare")
 
 	self.debug = self.db.global.debug
+
+	--[[ create the notify frame
+	self.frame = CreateFrame("Frame", "AR_Frame", UIParent)
+	self.frame:SetResizable(false)
+	self.frame:SetClampedToScreen(true)
+	self:InitFrame()]]
 
 	-- register our events
 	self:RegisterEvent("CHAT_MSG_MONSTER_EMOTE")
