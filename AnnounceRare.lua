@@ -56,7 +56,7 @@ local tostring = tostring
 local outputChannel = "|cffffff00%s|r"
 local messageToSend = L["%s%s (%s/%s %.2f%%) is at %s %s%s and %s"]
 local deathMessage = L["%s%s has been slain %sat %02d:%02d server time!"]
-local chatLink = "|HAR2_RARE:%1$d|h|cffffffffRare Found:|r |cFFFFFF00[%2$s (" .. L["Click to Announce"] .. ")]|r|h"
+local chatLink = "|HAR2_RARE:%1$d:%2$d:%3$d|h|cffffffffRare Found:|r |cFFFFFF00[%4$s (" .. L["Click to Announce"] .. ")]|r|h"
 local chatLinkDead = "|HAR2_DEATH:%1$d|h|cffffffffRare Died:|r |cFFFFFF00[%2$s (" .. L["Click to Announce"] .. ")]|r|h"
 local chatLinkDrill = "|HAR2_DRILL:%1$d|h|cffffffffDrill Found:|r |cFFFFFF00[%2$s (" .. L["Click to Announce"] .. ")]|r|h"
 
@@ -188,6 +188,15 @@ local options = {
 						end
 					end,
 				},
+				monitor = {
+					type = "toggle",
+					order = 4,
+					name = L["Monitor Chat"],
+					desc = L["Monitor chat for rare notifications and create TomTom waypoints for them."],
+					disabled = function() return not IsAddOnLoaded("TomTom") end,
+					get = function(info) return AR.db.global.monitor end,
+					set = function(info, value) AR.db.global.monitor = value end,
+				},
 			},
 		},
 	}
@@ -255,15 +264,14 @@ local function DecRound(num, decPlaces)
 end
 
 function AR:ParseLink(link, text, button, frame)
-	local linkType, id = strsplit(":", link)
+	local linkType, id, health, healthMax = strsplit(":", link)
 
 	if self.db.global.debug then
-		self:DebugPrint((L["Link Type: %s, ID: %s"]):format(linkType, id))
+		self:DebugPrint((L["Link Type: %s, ID: %s, Health: %s, Max: %s"]):format(linkType, id, health, healthMax))
 	end
 	
 	if linkType == "AR2_RARE" then
-		self.rares[tonumber(id)].announced = true
-		self:AnnounceRare()
+		self:AnnounceRare(tonumber(id), tonumber(health), tonumber(healthMax))
 	elseif linkType == "AR2_DEATH" then
 		self:AnnounceDeath(tonumber(id))
 	elseif linkType == "AR2_DRILL" then
@@ -349,17 +357,25 @@ function AR:AnnounceDrill(id)
 	), self.db.global.output:upper(), nil, self.db.global.output:upper() == "CHANNEL" and genId or nil)
 end
 
-function AR:AnnounceRare()
-	local tarId, tarCombat = GetTargetId(), UnitAffectingCombat("target")
-	local tarHealth, tarHealthMax = UnitHealth("target"), UnitHealthMax("target")
+function AR:AnnounceRare(id, tarHealth, tarHealthMax)
+	local tarCombat = UnitAffectingCombat("target")
+	--local tarHealth, tarHealthMax = UnitHealth("target"), UnitHealthMax("target")
 	local tarPos = C_Map_GetPlayerMapPosition(C_Map_GetBestMapForUnit("player"), "player")
 	local genId = GetGeneralChannelNumber()
 
 	-- unable to determine the target's id
-	if not tarId or tarId == nil then return end
+	if not id or not self.rares[id] then
+		if self.db.global.debug then
+			self:DebugPrint(L["Invalid ID provided."])
+		end
+		return
+	end
 
 	-- internal cooldown of 3 minutes to prevent spam
-	if self.lastSeen == tarId and self.lastTime < time() - self.cooldown then
+	if self.db.global.lastSeen == id and self.db.global.lastTime < time() - self.cooldown then
+		if self.db.global.debug then
+			self:DebugPrint(L["Skipping print due to throttle."])
+		end
 		return
 	end
 
@@ -368,7 +384,7 @@ function AR:AnnounceRare()
 	else
 		SendChatMessage(messageToSend:format(
 			self.db.global.advertise == true and "AnnounceRare: " or "",
-			self.rares[tarId].name,
+			self.rares[id].name,
 			FormatNumber(tarHealth),
 			FormatNumber(tarHealthMax),
 			(tarHealth / tarHealthMax) * 100,
@@ -379,11 +395,11 @@ function AR:AnnounceRare()
 		), self.db.global.output:upper(), nil, self.db.global.output:upper() == "CHANNEL" and genId or nil)
 		
 		-- update multiple ids from one sighting
-		if self.zoneText == "mechagon" then self:UpdateDuplicates(tarId) end
+		if self.zoneText == "mechagon" then self:UpdateDuplicates(id) end
 
-		self.db.global.lastSeen = tarId
+		self.db.global.lastSeen = id
 		self.db.global.lastTime = time()
-		self.rares[tarId].announced = true
+		self.rares[id].announced = true
 	end
 end
 
@@ -480,7 +496,7 @@ function AR:PLAYER_TARGET_CHANGED()
 		if not tarId or tarId == nil then return end
 
 		-- internal cooldown of 1 minute to prevent spam
-		if self.db.global.lastSeen == tarId and self.db.global.lastTime < time() - self.linkCooldown then
+		if self.db.global.linkLastSeen == tarId and self.db.global.linkLastTime < time() - self.linkCooldown then
 			if self.db.global.debug then
 				self:DebugPrint(L["Chat link skipped due to throttle."])
 			end
@@ -494,9 +510,9 @@ function AR:PLAYER_TARGET_CHANGED()
 				end
 				return
 			end
-			self:Print(chatLink:format(tarId, self.rares[tarId].name))
-			self.db.global.lastSeen = tarId
-			self.db.global.lastTime = time()
+			self:Print(chatLink:format(tarId, UnitHealth("target"), UnitHealthMax("target"), self.rares[tarId].name))
+			self.db.global.linkLastSeen = tarId
+			self.db.global.linkLastTime = time()
 		end
 	end
 end
@@ -509,6 +525,17 @@ function AR:COMBAT_LOG_EVENT_UNFILTERED()
 			self:Print(chatLinkDead:format(id, self.rares[id].name))
 		end
 	end
+end
+
+function AR:CHAT_MSG_CHANNEL(msg, ...)
+	--[[ chat monitoring
+	if self.db.global.monitor and self.tomtom then
+		-- announcerare
+		--local messageToSend = L["%s%s (%s/%s %.2f%%) is at %s %s%s and %s"]
+		if msg:find("(.+) %(.+%) is at ([0-9.]+) ([0-9.]+) .+") then
+			local npcName, x, y = msg:match(
+		end
+	end]]
 end
 
 function AR:CHAT_MSG_MONSTER_EMOTE(msg, ...)
@@ -549,10 +576,28 @@ end
 
 function AR:OnEnable()
 	self:RawHook("SetItemRef", "ParseLink", true)
+
+	-- register our events
+	self:RegisterEvent("CHAT_MSG_CHANNEL")
+	self:RegisterEvent("CHAT_MSG_MONSTER_EMOTE")
+	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+	self:RegisterEvent("PLAYER_ENTERING_WORLD")
+	self:RegisterEvent("PLAYER_TARGET_CHANGED")
+	self:RegisterEvent("ZONE_CHANGED", function() AR:CheckZone() end)
+	self:RegisterEvent("ZONE_CHANGED_NEW_AREA", function() AR:CheckZone() end)
 end
 
 function AR:OnDisable()
 	self:UnhookAll()
+
+	-- unregister our events
+	self:UnregisterEvent("CHAT_MSG_CHANNEL")
+	self:UnregisterEvent("CHAT_MSG_MONSTER_EMOTE")
+	self:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+	self:UnregisterEvent("PLAYER_ENTERING_WORLD")
+	self:UnregisterEvent("PLAYER_TARGET_CHANGED")
+	self:UnregisterEvent("ZONE_CHANGED", function() AR:CheckZone() end)
+	self:UnregisterEvent("ZONE_CHANGED_NEW_AREA", function() AR:CheckZone() end)
 end
 
 function AR:PLAYER_ENTERING_WORLD()
@@ -607,6 +652,17 @@ function AR:PLAYER_ENTERING_WORLD()
 			else
 				self:Print(("%s: %s"):format(L["Zone ID:"], C_Map_GetBestMapForUnit("player")))
 			end
+		elseif key == "cache" then
+			if self.correctZone then
+				local genId = GetGeneralChannelNumber()
+				local tarPos = C_Map_GetPlayerMapPosition(C_Map_GetBestMapForUnit("player"), "player")
+				SendChatMessage((L["Cache is located at %s, %s!"]):format(
+					ceil(tarPos.x * 10000) / 100,
+					ceil(tarPos.y * 10000) / 100
+				), self.db.global.output:upper(), nil, self.db.global.output:upper() == "CHANNEL" and genId or nil)
+			else
+				self:Print(L["You must be in Mechagon, Nazjatar, Uldum, or the Vale of Eternal Blossoms to announce a cache."])
+			end
 		else 
 			local tarId = GetTargetId()
 			if self.correctZone and self:ValidNPC(tarId) and not UnitIsDead("target") then
@@ -638,6 +694,8 @@ function AR:InitFrame()
 	image:SetTexture("Interface\\Addons\\AnnounceRare\\Textures\\icon.tga")
 
 	button:RegisterForClicks("AnyDown")
+
+	button:SetScript("OnClick", function() AR.frame:Hide() end)
 	self.frame.button = button
 end
 
@@ -653,15 +711,8 @@ function AR:OnInitialize()
 	self.frame = CreateFrame("Frame", "AR_Frame", UIParent)
 	self.frame:SetResizable(false)
 	self.frame:SetClampedToScreen(true)
-	self:InitFrame()]]
-
-	-- register our events
-	self:RegisterEvent("CHAT_MSG_MONSTER_EMOTE")
-	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-	self:RegisterEvent("PLAYER_ENTERING_WORLD")
-	self:RegisterEvent("PLAYER_TARGET_CHANGED")
-	self:RegisterEvent("ZONE_CHANGED", function() AR:CheckZone() end)
-	self:RegisterEvent("ZONE_CHANGED_NEW_AREA", function() AR:CheckZone() end)
+	self:InitFrame()
+	self.frame:Hide()]]
 
 	if self.db.global.onLoad == true then
 		self:Print((L["AnnounceRare v%s loaded! Please use |cffffff00/rare help|r for commands."]):format(self.version))
