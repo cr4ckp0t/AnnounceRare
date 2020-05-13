@@ -666,7 +666,7 @@ function AR:PLAYER_ENTERING_WORLD()
 		else 
 			local tarId = GetTargetId()
 			if self.correctZone and self:ValidNPC(tarId) and not UnitIsDead("target") then
-				self:AnnounceRare()
+				self:AnnounceRare(tonumber(tarId), tonumber(UnitHealth("target")), tonumber(UnitHealthMax("target")))
 			elseif self.correctZone and self:ValidNPC(tarId) and UnitIsDead("target") then
 				self:Print(L["You cannot announce a dead rare's position."])
 			elseif not self.correctZone then
