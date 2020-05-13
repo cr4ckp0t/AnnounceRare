@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Announce Rare (BFA 8.3) By Crackpotx (US, Lightbringer)
+-- Announce Rare (BFA 8.3) By Crackpot (US, Thrall)
 -------------------------------------------------------------------------------
 local AR = LibStub("AceAddon-3.0"):NewAddon("AnnounceRare", "AceComm-3.0", "AceConsole-3.0", "AceEvent-3.0", "AceHook-3.0", "AceTimer-3.0")
 local L = LibStub("AceLocale-3.0"):GetLocale("AnnounceRare", false)
@@ -666,7 +666,7 @@ function AR:PLAYER_ENTERING_WORLD()
 		else 
 			local tarId = GetTargetId()
 			if self.correctZone and self:ValidNPC(tarId) and not UnitIsDead("target") then
-				self:AnnounceRare()
+				self:AnnounceRare(tonumber(tarId), tonumber(UnitHealth("target")), tonumber(UnitHealthMax("target")))
 			elseif self.correctZone and self:ValidNPC(tarId) and UnitIsDead("target") then
 				self:Print(L["You cannot announce a dead rare's position."])
 			elseif not self.correctZone then

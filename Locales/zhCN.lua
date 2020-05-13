@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Announce Rare By Crackpotx (US, Lightbringer)
+-- Announce Rare By Crackpot (US, Thrall)
 -------------------------------------------------------------------------------
 local AceLocale = LibStub:GetLibrary("AceLocale-3.0")
 local L = AceLocale:NewLocale("AnnounceRare", "zhCN", false)
