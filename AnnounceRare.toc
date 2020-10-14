@@ -1,7 +1,7 @@
-## Interface: 80300
+## Interface: 90001
 ## Author: Crackpotx
-## Title: Announce Rare (BFA 8.3)
-## Version: 2.0.8
+## Title: Announce Rare
+## Version: 3.0.0
 ## Notes: Announce rares to Mechagon, Nazjatar, Uldum, and Vale general chat.
 ## SavedVariables: AnnounceRareDB
 ## OptionalDeps: TomTom

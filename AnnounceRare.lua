@@ -628,6 +628,8 @@ function AR:PLAYER_ENTERING_WORLD()
 			self:Print((L["|cffffff00/rare|r - %s"]):format(L["Announce rare to output channel."]))
 			self:Print(helpString:format("config", L["Display configuration window."]))
 			self:Print(helpString:format("debug", L["Toggle addon debugging."]))
+			self:Print(helpString:format("cache", L["Announce cache location."]))
+			self:Print(helpString:format("tear", L["Announce void tear location."]))
 			self:Print(helpString:format("help", L["Print some help."]))
 			if self.db.global.debug then
 				self:Print(helpString:format("id", L["Print target information."]))
@@ -657,6 +659,17 @@ function AR:PLAYER_ENTERING_WORLD()
 				local genId = GetGeneralChannelNumber()
 				local tarPos = C_Map_GetPlayerMapPosition(C_Map_GetBestMapForUnit("player"), "player")
 				SendChatMessage((L["Cache is located at %s, %s!"]):format(
+					ceil(tarPos.x * 10000) / 100,
+					ceil(tarPos.y * 10000) / 100
+				), self.db.global.output:upper(), nil, self.db.global.output:upper() == "CHANNEL" and genId or nil)
+			else
+				self:Print(L["You must be in Mechagon, Nazjatar, Uldum, or the Vale of Eternal Blossoms to announce a cache."])
+			end
+		elseif key == "tear" then
+			if self.correctZone then
+				local genId = GetGeneralChannelNumber()
+				local tarPos = C_Map_GetPlayerMapPosition(C_Map_GetBestMapForUnit("player"), "player")
+				SendChatMessage((L["Void Tear is located at %s, %s!"]):format(
 					ceil(tarPos.x * 10000) / 100,
 					ceil(tarPos.y * 10000) / 100
 				), self.db.global.output:upper(), nil, self.db.global.output:upper() == "CHANNEL" and genId or nil)
@@ -712,7 +725,7 @@ function AR:OnInitialize()
 	self.frame:SetResizable(false)
 	self.frame:SetClampedToScreen(true)
 	self:InitFrame()
-	self.frame:Hide()]]
+	--self.frame:Hide()]]
 
 	if self.db.global.onLoad == true then
 		self:Print((L["AnnounceRare v%s loaded! Please use |cffffff00/rare help|r for commands."]):format(self.version))
