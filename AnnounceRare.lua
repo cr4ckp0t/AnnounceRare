@@ -6,9 +6,12 @@ local L = LibStub("AceLocale-3.0"):GetLocale("AnnounceRare", false)
 
 -- local api cache
 local C_ChatInfo_GetNumActiveChannels = C_ChatInfo.GetNumActiveChannels
+local C_Map_ClearUserWaypoint = C_Map.ClearUserWaypoint
 local C_Map_GetBestMapForUnit = C_Map.GetBestMapForUnit
 local C_Map_GetMapInfo = C_Map.GetMapInfo
 local C_Map_GetPlayerMapPosition = C_Map.GetPlayerMapPosition
+local C_Map_GetUserWaypointHyperlink = C_Map.GetUserWaypointHyperlink
+local C_Map_SetUserWaypoint = C_Map.SetUserWaypoint
 local CombatLogGetCurrentEventInfo = _G["CombatLogGetCurrentEventInfo"]
 local CreateFrame = _G["CreateFrame"]
 local EnumerateServerChannels = _G["EnumerateServerChannels"]
@@ -54,7 +57,7 @@ local tonumber = tonumber
 local tostring = tostring
 
 local outputChannel = "|cffffff00%s|r"
-local messageToSend = L["%s%s (%s/%s %.2f%%) is at %s %s%s and %s"]
+local messageToSend = L["%s%s (%s/%s %.2f%%) is at %s %s%s and %s. %s"]
 local deathMessage = L["%s%s has been slain %sat %02d:%02d server time!"]
 local chatLink = "|HAR2_RARE:%1$d:%2$d:%3$d|h|cffffffffRare Found:|r |cFFFFFF00[%4$s (" .. L["Click to Announce"] .. ")]|r|h"
 local chatLinkDead = "|HAR2_DEATH:%1$d|h|cffffffffRare Died:|r |cFFFFFF00[%2$s (" .. L["Click to Announce"] .. ")]|r|h"
@@ -360,7 +363,8 @@ end
 function AR:AnnounceRare(id, tarHealth, tarHealthMax)
 	local tarCombat = UnitAffectingCombat("target")
 	--local tarHealth, tarHealthMax = UnitHealth("target"), UnitHealthMax("target")
-	local tarPos = C_Map_GetPlayerMapPosition(C_Map_GetBestMapForUnit("player"), "player")
+	local bestMap = C_Map_GetBestMapForUnit("player")
+	local tarPos = C_Map_GetPlayerMapPosition(bestMap, "player")
 	local genId = GetGeneralChannelNumber()
 
 	-- unable to determine the target's id
@@ -382,6 +386,9 @@ function AR:AnnounceRare(id, tarHealth, tarHealthMax)
 	if AR.db.global.output:upper() == "CHANNEL" and not genId then
 		self:Print(L["Unable to determine your general channel number."])
 	else
+		-- set a user waypoint to be able to send a link
+		C_Map_SetUserWaypoint(UiMapPoint.CreateFromCoordinates(bestMap, tarPos.x, tarPos.y))
+
 		SendChatMessage(messageToSend:format(
 			self.db.global.advertise == true and "AnnounceRare: " or "",
 			self.rares[id].name,
@@ -391,9 +398,12 @@ function AR:AnnounceRare(id, tarHealth, tarHealthMax)
 			ceil(tarPos.x * 10000) / 100,
 			ceil(tarPos.y * 10000) / 100,
 			IsInAltTimeline() == true and " " .. L["in the alternative timeline"] or "",
-			UnitAffectingCombat("target") == true and L["has been engaged!"] or L["has NOT been engaged!"]
+			UnitAffectingCombat("target") == true and L["has been engaged!"] or L["has NOT been engaged!"],
+			C_Map_GetUserWaypointHyperlink()
 		), self.db.global.output:upper(), nil, self.db.global.output:upper() == "CHANNEL" and genId or nil)
 		
+		C_Map_ClearUserWaypoint()
+
 		-- update multiple ids from one sighting
 		if self.zoneText == "mechagon" then self:UpdateDuplicates(id) end
 
@@ -721,7 +731,7 @@ function AR:OnInitialize()
 	self.debug = self.db.global.debug
 
 	--[[ create the notify frame
-	self.frame = CreateFrame("Frame", "AR_Frame", UIParent)
+	self.frame = CreateFrame("Frame", "AR_Frame", UIParent, BackdropTemplate)
 	self.frame:SetResizable(false)
 	self.frame:SetClampedToScreen(true)
 	self:InitFrame()

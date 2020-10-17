@@ -1,7 +1,7 @@
 ## Interface: 90001
 ## Author: Crackpotx
 ## Title: Announce Rare
-## Version: 3.0.0
+## Version: 3.0.1
 ## Notes: Announce rares to Mechagon, Nazjatar, Uldum, and Vale general chat.
 ## SavedVariables: AnnounceRareDB
 ## OptionalDeps: TomTom
