@@ -45,8 +45,8 @@ AR.zones = {
 	1530, -- vale of eternal blossoms
 	1527, -- uldum
 	1571, -- uldum (vision zone)
+	11400 -- the maw
 }
-
 local band = bit.band
 local ceil = math.ceil
 local match = string.match
@@ -1513,5 +1513,95 @@ function AR:LoadRares()
 			["name"] = L["Skiver"],
 			["announced"] = false
 		},
+
+		-- Shadowlands additions
+
+		-- the maw
+		-- from this wowhead list - https://www.wowhead.com/guides/shadowlands-the-maw-events-rares#rare-locations-in-the-maw
+		[157964] = {
+			["name"] = L["Adjutant Dekaris"],
+			["announced"] = false
+		},
+		[157833] = {
+			["name"] = L["Borr-Geth"],
+			["announced"] = false
+		},
+		[160770] = {
+			["name"] = L["Darithis the Bleak"],
+			["announced"] = false
+		},
+		[170711] = {
+			["name"] = L["Dolos"],
+			["announced"] = false
+		},
+		[169827] = {
+			["name"] = L["Ekphoras, Herald of Grief"],
+			["announced"] = false
+		},
+		[170301] = {
+			["name"] = L["Apholeias, Herald of Loss"],
+			["announced"] = false
+		},
+		[170302] = {
+			["name"] = L["Talaporas, Herald of Pain"],
+			["announced"] = false
+		},
+		[170303] = {
+			["name"] = L["Exos, Herald of Domination"],
+			["announced"] = false
+		},
+		[158278] = {
+			["name"] = L["Nascent Devourer"],
+			["announced"] = false
+		},
+		[172577] = {
+			["name"] = L["Orophea"],
+			["announced"] = false
+		},
+		[166398] = {
+			["name"] = L["Soulforger Rhovus"],
+			["announced"] = false
+		},
+		[170731] = {
+			["name"] = L["Thanassos"],
+			["announced"] = false
+		},
+		[172862] = {
+			["name"] = L["Yero the Skittish"],
+			["announced"] = false
+		},
+		[171317] = {
+			["name"] = L["Conjured Death"],
+			["announced"] = false
+		},
+		[158025] = {
+			["name"] = L["Darklord Taraxis"],
+			["announced"] = false
+		},
+		[170774] = {
+			["name"] = L["Eketra"],
+			["announced"] = false
+		},
+		[154330] = {
+			["name"] = L["Eternas the Tormentor"],
+			["announced"] = false
+		},
+		[162849] = {
+			["name"] = L["Morguliax"],
+			["announced"] = false
+		},
+		[164064] = {
+			["name"] = L["Obolos"],
+			["announced"] = false
+		},
+		[170634] = {
+			["name"] = L["Shadeweaver Zeris"],
+			["announced"] = false
+		},
+		[175012] = {
+			["name"] = L["Ikras the Devourer"],
+			["announced"] = false
+		}
+
 	}
 end
