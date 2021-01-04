@@ -45,7 +45,7 @@ AR.zones = {
 	1530, -- vale of eternal blossoms
 	1527, -- uldum
 	1571, -- uldum (vision zone)
-	11400 -- the maw
+	1543 -- the maw
 }
 local band = bit.band
 local ceil = math.ceil
