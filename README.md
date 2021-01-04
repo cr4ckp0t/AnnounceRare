@@ -1,4 +1,4 @@
-# AnnounceRare (Updated for 8.3)
+# AnnounceRare (Updated for Shadowlands)
 Announce rares to general chat of Nazjatar, Mechagon, Uldum, and Vale.
 
-https://www.curseforge.com/wow/addons/announcerare
+Shadowlands Rare support is WIP
