@@ -1,7 +1,7 @@
-## Interface: 90005
-## Author: Crackpotx, Updated by EvilGrin
+## Interface: 90100
+## Author: Crackpotx
 ## Title: Announce Rare
-## Version: 3.1.1
+## Version: 3.2.0
 ## Notes: Announce rares to general chat.
 ## SavedVariables: AnnounceRareDB
 ## OptionalDeps: TomTom

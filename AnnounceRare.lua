@@ -1,7 +1,15 @@
 -------------------------------------------------------------------------------
--- Announce Rare (BFA 8.3) By Crackpot (US, Thrall)
+-- Announce Rare By Crackpot
 -------------------------------------------------------------------------------
-local AR = LibStub("AceAddon-3.0"):NewAddon("AnnounceRare", "AceComm-3.0", "AceConsole-3.0", "AceEvent-3.0", "AceHook-3.0", "AceTimer-3.0")
+local AR =
+	LibStub("AceAddon-3.0"):NewAddon(
+	"AnnounceRare",
+	"AceComm-3.0",
+	"AceConsole-3.0",
+	"AceEvent-3.0",
+	"AceHook-3.0",
+	"AceTimer-3.0"
+)
 local L = LibStub("AceLocale-3.0"):GetLocale("AnnounceRare", false)
 
 -- local api cache
@@ -45,7 +53,8 @@ AR.zones = {
 	1530, -- vale of eternal blossoms
 	1527, -- uldum
 	1571, -- uldum (vision zone)
-	1543 -- the maw
+	1543, -- the maw
+	1961 -- kothria
 }
 local band = bit.band
 local ceil = math.ceil
@@ -59,9 +68,11 @@ local tostring = tostring
 local outputChannel = "|cffffff00%s|r"
 local messageToSend = L["%s%s (%s/%s %.2f%%) is at %s %s%s and %s. %s"]
 local deathMessage = L["%s%s has been slain %sat %02d:%02d server time!"]
-local chatLink = "|HAR2_RARE:%1$d:%2$d:%3$d|h|cffffffffRare Found:|r |cFFFFFF00[%4$s (" .. L["Click to Announce"] .. ")]|r|h"
+local chatLink =
+	"|HAR2_RARE:%1$d:%2$d:%3$d|h|cffffffffRare Found:|r |cFFFFFF00[%4$s (" .. L["Click to Announce"] .. ")]|r|h"
 local chatLinkDead = "|HAR2_DEATH:%1$d|h|cffffffffRare Died:|r |cFFFFFF00[%2$s (" .. L["Click to Announce"] .. ")]|r|h"
-local chatLinkDrill = "|HAR2_DRILL:%1$d|h|cffffffffDrill Found:|r |cFFFFFF00[%2$s (" .. L["Click to Announce"] .. ")]|r|h"
+local chatLinkDrill =
+	"|HAR2_DRILL:%1$d|h|cffffffffDrill Found:|r |cFFFFFF00[%2$s (" .. L["Click to Announce"] .. ")]|r|h"
 
 local defaults = {
 	global = {
@@ -74,7 +85,7 @@ local defaults = {
 		notify = "link",
 		onLoad = false,
 		output = "CHANNEL",
-		tomtom = true,
+		tomtom = true
 	}
 }
 
@@ -88,19 +99,21 @@ local options = {
 			type = "header",
 			order = 1,
 			name = (L["|cffff7d0a%s:|r %s"]):format(L["Version"], AR.version),
-			width = "full",
+			width = "full"
 		},
 		apiChanges = {
 			type = "description",
 			order = 2,
-			name = L["Beginning in WOW patch 8.2.5 the API function |cffffff00SendChatMessage|r is now a protected. This essentially means that user input is required to trigger the chat message, otherwise you will receive an \"ADDON_ACTION_BLOCKED\" error you may have seen with previous versions of AR."],
-			width = "full", 
+			name = L[
+				'Beginning in WOW patch 8.2.5 the API function |cffffff00SendChatMessage|r is now a protected. This essentially means that user input is required to trigger the chat message, otherwise you will receive an "ADDON_ACTION_BLOCKED" error you may have seen with previous versions of AR.'
+			],
+			width = "full"
 		},
 		space = {
 			type = "description",
 			order = 3,
 			name = "",
-			width = "full",
+			width = "full"
 		},
 		general = {
 			type = "group",
@@ -112,39 +125,58 @@ local options = {
 					type = "select",
 					order = 1,
 					name = L["Notification Method"],
-					desc = L["How do you want to be notified of a rare?\n\nChat Link (Default) - Prints a link in your default chat frame that you click to send the announcement.\nButton - A button will appear when you target a rare to send the announcement."],
+					desc = L[
+						"How do you want to be notified of a rare?\n\nChat Link (Default) - Prints a link in your default chat frame that you click to send the announcement.\nButton - A button will appear when you target a rare to send the announcement."
+					],
 					values = {
-						["link"] = L["Chat Link"],
+						["link"] = L["Chat Link"]
 						--["btn"] = L["Button"],
 					},
-					get = function(info) return AR.db.global.notify end,
-					set = function(info, value) AR.db.global.notify = value end,
+					get = function(info)
+						return AR.db.global.notify
+					end,
+					set = function(info, value)
+						AR.db.global.notify = value
+					end
 				},
 				advertise = {
 					type = "toggle",
 					order = 2,
 					name = L["Advertise AR"],
 					desc = L["Adds a prefix to chat messages with the name of the addon."],
-					get = function(info) return AR.db.global.advertise end,
-					set = function(info, value) AR.db.global.advertise = value end,
+					get = function(info)
+						return AR.db.global.advertise
+					end,
+					set = function(info, value)
+						AR.db.global.advertise = value
+					end
 				},
 				onLoad = {
 					type = "toggle",
 					order = 3,
 					name = L["Loading Message"],
 					desc = L["Display a loading message when the addon first loads."],
-					get = function(info) return AR.db.global.onLoad end,
-					set = function(info, value) AR.db.global.onLoad = value end,
+					get = function(info)
+						return AR.db.global.onLoad
+					end,
+					set = function(info, value)
+						AR.db.global.onLoad = value
+					end
 				},
 				debug = {
 					type = "toggle",
 					order = 4,
 					name = L["Debugging"],
 					desc = L["Enable this to assist with fixing a bug or unintended functionality."],
-					get = function(info) return AR.db.global.debug end,
-					set = function(info, value) AR.db.global.debug = value; AR.debug = value end,
-				},
-			},
+					get = function(info)
+						return AR.db.global.debug
+					end,
+					set = function(info, value)
+						AR.db.global.debug = value
+						AR.debug = value
+					end
+				}
+			}
 		},
 		announcements = {
 			type = "group",
@@ -164,57 +196,81 @@ local options = {
 						["PARTY"] = L["Party"],
 						["RAID"] = L["Raid"],
 						["GUILD"] = L["Guild"],
-						["OFFICER"] = L["Officer"],
+						["OFFICER"] = L["Officer"]
 					},
-					get = function(info) return AR.db.global.output end,
-					set = function(info, value) AR.db.global.output = value end,
+					get = function(info)
+						return AR.db.global.output
+					end,
+					set = function(info, value)
+						AR.db.global.output = value
+					end
 				},
 				drill = {
 					type = "toggle",
 					order = 2,
 					name = L["Drill Announcements"],
 					desc = L["Announce drill sites to let people know what mob is about to be available."],
-					get = function(info) return AR.db.global.drill end,
-					set = function(info, value) AR.db.global.drill = value end,
+					get = function(info)
+						return AR.db.global.drill
+					end,
+					set = function(info, value)
+						AR.db.global.drill = value
+					end
 				},
 				tomtom = {
 					type = "toggle",
 					order = 3,
 					name = L["TomTom Waypoints"],
-					desc = L["Automatically create TomTom waypoints for you when a drill site is activated.\n\n|cffff0000REQUIRES TOMTOM ADDON!|r"],
-					disabled = function() return not AR.db.global.drill end,
-					get = function(info) return AR.db.global.tomtom end,
+					desc = L[
+						"Automatically create TomTom waypoints for you when a drill site is activated.\n\n|cffff0000REQUIRES TOMTOM ADDON!|r"
+					],
+					disabled = function()
+						return not AR.db.global.drill
+					end,
+					get = function(info)
+						return AR.db.global.tomtom
+					end,
 					set = function(info, value)
 						AR.db.global.tomtom = value
 						if value then
 							AR.tomtom = IsAddOnLoaded("TomTom")
 						end
-					end,
+					end
 				},
 				monitor = {
 					type = "toggle",
 					order = 4,
 					name = L["Monitor Chat"],
 					desc = L["Monitor chat for rare notifications and create TomTom waypoints for them."],
-					disabled = function() return not IsAddOnLoaded("TomTom") end,
-					get = function(info) return AR.db.global.monitor end,
-					set = function(info, value) AR.db.global.monitor = value end,
-				},
-			},
-		},
+					disabled = function()
+						return not IsAddOnLoaded("TomTom")
+					end,
+					get = function(info)
+						return AR.db.global.monitor
+					end,
+					set = function(info, value)
+						AR.db.global.monitor = value
+					end
+				}
+			}
+		}
 	}
 }
 
 local function GetTargetId()
 	local guid = UnitGUID("target")
-	if guid == nil then return nil end
-	local unitType, _, _, _, _, unitId = strsplit("-", guid);
+	if guid == nil then
+		return nil
+	end
+	local unitType, _, _, _, _, unitId = strsplit("-", guid)
 	return (unitType == "Creature" or UnitType == "Vehicle") and tonumber(unitId) or nil
 end
 
 local function GetNPCGUID(guid)
-	if guid == nil then return nil end
-	local unitType, _, _, _, _, unitId = strsplit("-", guid);
+	if guid == nil then
+		return nil
+	end
+	local unitType, _, _, _, _, unitId = strsplit("-", guid)
 	return (unitType == "Creature" or UnitType == "Vehicle") and tonumber(unitId) or nil
 end
 
@@ -223,8 +279,12 @@ local function GetGeneralChannelNumber()
 	local channelRUFormat = "%s: %s"
 	local zoneText = GetZoneText()
 	local general = EnumerateServerChannels()
-	if zoneText == nil or general == nil then return false end
-	return GetChannelName(GetLocale() == "ruRU" and channelRUFormat:format(general, zoneText) or channelFormat:format(general, zoneText))
+	if zoneText == nil or general == nil then
+		return false
+	end
+	return GetChannelName(
+		GetLocale() == "ruRU" and channelRUFormat:format(general, zoneText) or channelFormat:format(general, zoneText)
+	)
 end
 
 -- Time Displacement
@@ -243,17 +303,19 @@ local function GetConfigStatus(configVar)
 end
 
 local function FormatNumber(n)
-    if n >= 10^6 then
-        return format("%.2fm", n / 10^6)
-    elseif n >= 10^3 then
-        return format("%.2fk", n / 10^3)
-    else
-        return tostring(n)
-    end
+	if n >= 10 ^ 6 then
+		return format("%.2fm", n / 10 ^ 6)
+	elseif n >= 10 ^ 3 then
+		return format("%.2fk", n / 10 ^ 3)
+	else
+		return tostring(n)
+	end
 end
 
 local function FindInArray(toFind, arraySearch)
-	if #arraySearch == 0 then return false end
+	if #arraySearch == 0 then
+		return false
+	end
 	for _, value in pairs(arraySearch) do
 		if value == toFind then
 			return true
@@ -272,7 +334,7 @@ function AR:ParseLink(link, text, button, frame)
 	if self.db.global.debug then
 		self:DebugPrint((L["Link Type: %s, ID: %s, Health: %s, Max: %s"]):format(linkType, id, health, healthMax))
 	end
-	
+
 	if linkType == "AR2_RARE" then
 		self:AnnounceRare(tonumber(id), tonumber(health), tonumber(healthMax))
 	elseif linkType == "AR2_DEATH" then
@@ -352,12 +414,12 @@ function AR:AnnounceDrill(id)
 		return
 	end
 
-	SendChatMessage((L["%s (%s) is up at %s %s."]):format(
-		drill,
-		rareName,
-		x,
-		y	
-	), self.db.global.output:upper(), nil, self.db.global.output:upper() == "CHANNEL" and genId or nil)
+	SendChatMessage(
+		(L["%s (%s) is up at %s %s."]):format(drill, rareName, x, y),
+		self.db.global.output:upper(),
+		nil,
+		self.db.global.output:upper() == "CHANNEL" and genId or nil
+	)
 end
 
 function AR:AnnounceRare(id, tarHealth, tarHealthMax)
@@ -389,23 +451,30 @@ function AR:AnnounceRare(id, tarHealth, tarHealthMax)
 		-- set a user waypoint to be able to send a link
 		C_Map_SetUserWaypoint(UiMapPoint.CreateFromCoordinates(bestMap, tarPos.x, tarPos.y))
 
-		SendChatMessage(messageToSend:format(
-			self.db.global.advertise == true and "AnnounceRare: " or "",
-			self.rares[id].name,
-			FormatNumber(tarHealth),
-			FormatNumber(tarHealthMax),
-			(tarHealth / tarHealthMax) * 100,
-			ceil(tarPos.x * 10000) / 100,
-			ceil(tarPos.y * 10000) / 100,
-			IsInAltTimeline() == true and " " .. L["in the alternative timeline"] or "",
-			UnitAffectingCombat("target") == true and L["has been engaged!"] or L["has NOT been engaged!"],
-			C_Map_GetUserWaypointHyperlink()
-		), self.db.global.output:upper(), nil, self.db.global.output:upper() == "CHANNEL" and genId or nil)
-		
+		SendChatMessage(
+			messageToSend:format(
+				self.db.global.advertise == true and "AnnounceRare: " or "",
+				self.rares[id].name,
+				FormatNumber(tarHealth),
+				FormatNumber(tarHealthMax),
+				(tarHealth / tarHealthMax) * 100,
+				ceil(tarPos.x * 10000) / 100,
+				ceil(tarPos.y * 10000) / 100,
+				IsInAltTimeline() == true and " " .. L["in the alternative timeline"] or "",
+				UnitAffectingCombat("target") == true and L["has been engaged!"] or L["has NOT been engaged!"],
+				C_Map_GetUserWaypointHyperlink()
+			),
+			self.db.global.output:upper(),
+			nil,
+			self.db.global.output:upper() == "CHANNEL" and genId or nil
+		)
+
 		C_Map_ClearUserWaypoint()
 
 		-- update multiple ids from one sighting
-		if self.zoneText == "mechagon" then self:UpdateDuplicates(id) end
+		if self.zoneText == "mechagon" then
+			self:UpdateDuplicates(id)
+		end
 
 		self.db.global.lastSeen = id
 		self.db.global.lastTime = time()
@@ -425,13 +494,18 @@ function AR:AnnounceDeath(id)
 		if self.debug == true then
 			self:DebugPrint((L["Announcing Rare Death: %s"]):format(self.rares[id].name))
 		end
-		SendChatMessage(deathMessage:format(
-			self.db.global.advertise == true and "AnnounceRare: " or "",
-			self.rares[id].name,
-			IsInAltTimeline() == true and L["in the alternative timeline"] .. " " or "",
-			hours,
-			minutes
-		), self.db.global.output:upper(), nil, self.db.global.output:upper() == "CHANNEL" and genId or nil)
+		SendChatMessage(
+			deathMessage:format(
+				self.db.global.advertise == true and "AnnounceRare: " or "",
+				self.rares[id].name,
+				IsInAltTimeline() == true and L["in the alternative timeline"] .. " " or "",
+				hours,
+				minutes
+			),
+			self.db.global.output:upper(),
+			nil,
+			self.db.global.output:upper() == "CHANNEL" and genId or nil
+		)
 	end
 end
 
@@ -441,11 +515,16 @@ function AR:AnnounceMouseover(name)
 	if self.debug then
 		self:DebugPrint((L["Announcing Armory at %s, %s"]):format(ceil(tarPos.x * 10000) / 100, ceil(tarPos.y * 10000) / 100))
 	end
-	SendChatMessage((L["%sArmory is located at %s, %s!"]):format(
-		ttItemName == "Broken Rustbolt Armory" and L["Broken"] .. " " or "",
-		ceil(tarPos.x * 10000) / 100,
-		ceil(tarPos.y * 10000) / 100
-	), self.db.global.output:upper(), nil, self.db.global.output:upper() == "CHANNEL" and genId or nil)
+	SendChatMessage(
+		(L["%sArmory is located at %s, %s!"]):format(
+			ttItemName == "Broken Rustbolt Armory" and L["Broken"] .. " " or "",
+			ceil(tarPos.x * 10000) / 100,
+			ceil(tarPos.y * 10000) / 100
+		),
+		self.db.global.output:upper(),
+		nil,
+		self.db.global.output:upper() == "CHANNEL" and genId or nil
+	)
 end
 
 function AR:CreateWaypoint(x, y, name)
@@ -459,20 +538,32 @@ function AR:CreateWaypoint(x, y, name)
 		TomTom:RemoveWaypoint(self.lastWaypoint)
 	end
 
-	self.lastWaypoint = TomTom:AddWaypoint(C_Map_GetBestMapForUnit("player"), x / 100, y / 100, {
-		title = name,
-		persistent = false,
-		minimap = true,
-		world = true
-	})
+	self.lastWaypoint =
+		TomTom:AddWaypoint(
+		C_Map_GetBestMapForUnit("player"),
+		x / 100,
+		y / 100,
+		{
+			title = name,
+			persistent = false,
+			minimap = true,
+			world = true
+		}
+	)
 
 	-- create an auto expire timer
-	if self.tomtomExpire ~= false then self.tomtomExpire:Cancel() end
-	self.tomtomExpire = self:ScheduleTimer(120, function()
-		if AR.lastWaypoint ~= nil and AR.lastWaypoint ~= false then
-			TomTom:RemoveWaypoint(AR.lastWaypoint)
+	if self.tomtomExpire ~= false then
+		self.tomtomExpire:Cancel()
+	end
+	self.tomtomExpire =
+		self:ScheduleTimer(
+		120,
+		function()
+			if AR.lastWaypoint ~= nil and AR.lastWaypoint ~= false then
+				TomTom:RemoveWaypoint(AR.lastWaypoint)
+			end
 		end
-	end)
+	)
 end
 
 function AR:CheckZone(...)
@@ -484,7 +575,10 @@ function AR:CheckZone(...)
 		if (FindInArray(mapId, self.zones) or FindInArray(mapInfo["parentMapID"], self.zones)) and self.correctZone == false then
 			self.correctZone = true
 			self.zoneText = mapId == 1462 and "mechagon" or "nazjatar"
-		elseif (FindInArray(mapId, self.zones) == false and FindInArray(mapInfo["parentMapID"], self.zones) == false) and self.correctZone == true then
+		elseif
+			(FindInArray(mapId, self.zones) == false and FindInArray(mapInfo["parentMapID"], self.zones) == false) and
+				self.correctZone == true
+		 then
 			self.correctZone = false
 			self.zoneText = nil
 		end
@@ -503,7 +597,9 @@ function AR:PLAYER_TARGET_CHANGED()
 	if self.db.global.autoAnnounce and self.correctZone then
 		local tarId = GetTargetId()
 
-		if not tarId or tarId == nil then return end
+		if not tarId or tarId == nil then
+			return
+		end
 
 		-- internal cooldown of 1 minute to prevent spam
 		if self.db.global.linkLastSeen == tarId and self.db.global.linkLastTime < time() - self.linkCooldown then
@@ -549,7 +645,7 @@ function AR:CHAT_MSG_CHANNEL(msg, ...)
 end
 
 function AR:CHAT_MSG_MONSTER_EMOTE(msg, ...)
-	if self.db.global.drill and self.correctZone and msg:match("DR-") then		
+	if self.db.global.drill and self.correctZone and msg:match("DR-") then
 		local rareName, id
 		if msg:match("DR-TR28") then
 			id = 1
@@ -576,7 +672,7 @@ function AR:CHAT_MSG_MONSTER_EMOTE(msg, ...)
 			return
 		end
 		self:Print(chatLinkDrill:format(id, rareName))
-		
+
 		-- create waypoint
 		if self.db.global.tomtom and self.tomtom then
 			self:CreateWaypoint(x, y, ("%s: %s"):format(drill, rareName))
@@ -593,8 +689,18 @@ function AR:OnEnable()
 	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 	self:RegisterEvent("PLAYER_ENTERING_WORLD")
 	self:RegisterEvent("PLAYER_TARGET_CHANGED")
-	self:RegisterEvent("ZONE_CHANGED", function() AR:CheckZone() end)
-	self:RegisterEvent("ZONE_CHANGED_NEW_AREA", function() AR:CheckZone() end)
+	self:RegisterEvent(
+		"ZONE_CHANGED",
+		function()
+			AR:CheckZone()
+		end
+	)
+	self:RegisterEvent(
+		"ZONE_CHANGED_NEW_AREA",
+		function()
+			AR:CheckZone()
+		end
+	)
 end
 
 function AR:OnDisable()
@@ -606,8 +712,18 @@ function AR:OnDisable()
 	self:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 	self:UnregisterEvent("PLAYER_ENTERING_WORLD")
 	self:UnregisterEvent("PLAYER_TARGET_CHANGED")
-	self:UnregisterEvent("ZONE_CHANGED", function() AR:CheckZone() end)
-	self:UnregisterEvent("ZONE_CHANGED_NEW_AREA", function() AR:CheckZone() end)
+	self:UnregisterEvent(
+		"ZONE_CHANGED",
+		function()
+			AR:CheckZone()
+		end
+	)
+	self:UnregisterEvent(
+		"ZONE_CHANGED_NEW_AREA",
+		function()
+			AR:CheckZone()
+		end
+	)
 end
 
 function AR:PLAYER_ENTERING_WORLD()
@@ -622,83 +738,90 @@ function AR:PLAYER_ENTERING_WORLD()
 	self.tomtomExpire = false
 
 	-- chat command using aceconsole-3.0
-	self:RegisterChatCommand("rare", function(args)
-		local key = self:GetArgs(args, 1)
-		local helpString = "|cffffff00/rare %s|r - %s"
-		if key == "config" then
-			LibStub("AceConfigDialog-3.0"):Open("Announce Rare")
-			self:Print(L["Displaying configuration options."])
-		elseif key == "debug" then
-			self.db.global.debug = not self.db.global.debug
-			self:Print((L["Debugging has been %s!"]):format(GetConfigStatus(self.db.global.debug)))
-		elseif key == "frame" then
-			self.frame:Show()
-		elseif key == "help" or key == "?" then
-			self:Print(L["Command Line Help"])
-			self:Print((L["|cffffff00/rare|r - %s"]):format(L["Announce rare to output channel."]))
-			self:Print(helpString:format("config", L["Display configuration window."]))
-			self:Print(helpString:format("debug", L["Toggle addon debugging."]))
-			self:Print(helpString:format("cache", L["Announce cache location."]))
-			self:Print(helpString:format("tear", L["Announce void tear location."]))
-			self:Print(helpString:format("help", L["Print some help."]))
-			if self.db.global.debug then
-				self:Print(helpString:format("id", L["Print target information."]))
-				self:Print(helpString:format("zone", L["Print zone information."]))
-			end
-		elseif key == "id" then
-			if not self.db.global.debug then
-				self:Print(L["Debugging must be enabled to use this command."])
+	self:RegisterChatCommand(
+		"rare",
+		function(args)
+			local key = self:GetArgs(args, 1)
+			local helpString = "|cffffff00/rare %s|r - %s"
+			if key == "config" then
+				LibStub("AceConfigDialog-3.0"):Open("Announce Rare")
+				self:Print(L["Displaying configuration options."])
+			elseif key == "debug" then
+				self.db.global.debug = not self.db.global.debug
+				self:Print((L["Debugging has been %s!"]):format(GetConfigStatus(self.db.global.debug)))
+			elseif key == "frame" then
+				self.frame:Show()
+			elseif key == "help" or key == "?" then
+				self:Print(L["Command Line Help"])
+				self:Print((L["|cffffff00/rare|r - %s"]):format(L["Announce rare to output channel."]))
+				self:Print(helpString:format("config", L["Display configuration window."]))
+				self:Print(helpString:format("debug", L["Toggle addon debugging."]))
+				self:Print(helpString:format("cache", L["Announce cache location."]))
+				self:Print(helpString:format("tear", L["Announce void tear location."]))
+				self:Print(helpString:format("help", L["Print some help."]))
+				if self.db.global.debug then
+					self:Print(helpString:format("id", L["Print target information."]))
+					self:Print(helpString:format("zone", L["Print zone information."]))
+				end
+			elseif key == "id" then
+				if not self.db.global.debug then
+					self:Print(L["Debugging must be enabled to use this command."])
+				else
+					local tarId = GetTargetId()
+					if tarId == nil then
+						self:Print(L["Unable to determine target's ID."])
+					else
+						local entry = (self.rares[tarId] ~= nil) and "True" or "False"
+						self:Print(("%s: %s"):format(UnitName("target"), tarId))
+						self:Print(("%s: %s, %s: %s"):format(L["Has Entry"], entry, L["Valid NPC"], tostring(self:ValidNPC(tarId))))
+					end
+				end
+			elseif key == "zone" then
+				if not self.db.global.debug then
+					self:Print(L["Debugging must be enabled to use this command."])
+				else
+					self:Print(("%s: %s"):format(L["Zone ID:"], C_Map_GetBestMapForUnit("player")))
+				end
+			elseif key == "cache" then
+				if self.correctZone then
+					local genId = GetGeneralChannelNumber()
+					local tarPos = C_Map_GetPlayerMapPosition(C_Map_GetBestMapForUnit("player"), "player")
+					SendChatMessage(
+						(L["Cache is located at %s, %s!"]):format(ceil(tarPos.x * 10000) / 100, ceil(tarPos.y * 10000) / 100),
+						self.db.global.output:upper(),
+						nil,
+						self.db.global.output:upper() == "CHANNEL" and genId or nil
+					)
+				else
+					self:Print(L["You must be in Mechagon, Nazjatar, Uldum, or the Vale of Eternal Blossoms to announce a cache."])
+				end
+			elseif key == "tear" then
+				if self.correctZone then
+					local genId = GetGeneralChannelNumber()
+					local tarPos = C_Map_GetPlayerMapPosition(C_Map_GetBestMapForUnit("player"), "player")
+					SendChatMessage(
+						(L["Void Tear is located at %s, %s!"]):format(ceil(tarPos.x * 10000) / 100, ceil(tarPos.y * 10000) / 100),
+						self.db.global.output:upper(),
+						nil,
+						self.db.global.output:upper() == "CHANNEL" and genId or nil
+					)
+				else
+					self:Print(L["You must be in Mechagon, Nazjatar, Uldum, or the Vale of Eternal Blossoms to announce a cache."])
+				end
 			else
 				local tarId = GetTargetId()
-				if tarId == nil then
-					self:Print(L["Unable to determine target's ID."])
+				if self.correctZone and self:ValidNPC(tarId) and not UnitIsDead("target") then
+					self:AnnounceRare(tonumber(tarId), tonumber(UnitHealth("target")), tonumber(UnitHealthMax("target")))
+				elseif self.correctZone and self:ValidNPC(tarId) and UnitIsDead("target") then
+					self:Print(L["You cannot announce a dead rare's position."])
+				elseif not self.correctZone then
+					self:Print(L["You must be in Mechagon, Nazjatar, Uldum, or the Vale of Eternal Blossoms to announce a rare."])
 				else
-					local entry = (self.rares[tarId] ~= nil) and "True" or "False"
-					self:Print(("%s: %s"):format(UnitName("target"), tarId))
-					self:Print(("%s: %s, %s: %s"):format(L["Has Entry"], entry, L["Valid NPC"], tostring(self:ValidNPC(tarId))))
+					self:Print(L["Target does not meet criteria to be announced."])
 				end
 			end
-		elseif key == "zone" then
-			if not self.db.global.debug then
-				self:Print(L["Debugging must be enabled to use this command."])
-			else
-				self:Print(("%s: %s"):format(L["Zone ID:"], C_Map_GetBestMapForUnit("player")))
-			end
-		elseif key == "cache" then
-			if self.correctZone then
-				local genId = GetGeneralChannelNumber()
-				local tarPos = C_Map_GetPlayerMapPosition(C_Map_GetBestMapForUnit("player"), "player")
-				SendChatMessage((L["Cache is located at %s, %s!"]):format(
-					ceil(tarPos.x * 10000) / 100,
-					ceil(tarPos.y * 10000) / 100
-				), self.db.global.output:upper(), nil, self.db.global.output:upper() == "CHANNEL" and genId or nil)
-			else
-				self:Print(L["You must be in Mechagon, Nazjatar, Uldum, or the Vale of Eternal Blossoms to announce a cache."])
-			end
-		elseif key == "tear" then
-			if self.correctZone then
-				local genId = GetGeneralChannelNumber()
-				local tarPos = C_Map_GetPlayerMapPosition(C_Map_GetBestMapForUnit("player"), "player")
-				SendChatMessage((L["Void Tear is located at %s, %s!"]):format(
-					ceil(tarPos.x * 10000) / 100,
-					ceil(tarPos.y * 10000) / 100
-				), self.db.global.output:upper(), nil, self.db.global.output:upper() == "CHANNEL" and genId or nil)
-			else
-				self:Print(L["You must be in Mechagon, Nazjatar, Uldum, or the Vale of Eternal Blossoms to announce a cache."])
-			end
-		else 
-			local tarId = GetTargetId()
-			if self.correctZone and self:ValidNPC(tarId) and not UnitIsDead("target") then
-				self:AnnounceRare(tonumber(tarId), tonumber(UnitHealth("target")), tonumber(UnitHealthMax("target")))
-			elseif self.correctZone and self:ValidNPC(tarId) and UnitIsDead("target") then
-				self:Print(L["You cannot announce a dead rare's position."])
-			elseif not self.correctZone then
-				self:Print(L["You must be in Mechagon, Nazjatar, Uldum, or the Vale of Eternal Blossoms to announce a rare."])
-			else
-				self:Print(L["Target does not meet criteria to be announced."])
-			end
 		end
-	end)
+	)
 end
 
 function AR:InitFrame()
@@ -718,7 +841,12 @@ function AR:InitFrame()
 
 	button:RegisterForClicks("AnyDown")
 
-	button:SetScript("OnClick", function() AR.frame:Hide() end)
+	button:SetScript(
+		"OnClick",
+		function()
+			AR.frame:Hide()
+		end
+	)
 	self.frame.button = button
 end
 
@@ -736,7 +864,6 @@ function AR:OnInitialize()
 	self.frame:SetClampedToScreen(true)
 	self:InitFrame()
 	--self.frame:Hide()]]
-
 	if self.db.global.onLoad == true then
 		self:Print((L["AnnounceRare v%s loaded! Please use |cffffff00/rare help|r for commands."]):format(self.version))
 	end
@@ -913,165 +1040,163 @@ function AR:LoadRares()
 			["name"] = L["Crazed Trogg (Orange)"],
 			["announced"] = false
 		},
-
 		-- nazjatar
 		[152415] = {
 			["name"] = L["Alga the Eyeless"],
 			["announced"] = false
-		},                 
+		},
 		[152681] = {
 			["name"] = L["Prince Typhonus"],
 			["announced"] = false
-		},                  
+		},
 		[153658] = {
 			["name"] = L["Shiz'narasz the Consumer"],
 			["announced"] = false
-		},         
+		},
 		[151719] = {
 			["name"] = L["Voice in the Deeps"],
 			["announced"] = false
-		},               
+		},
 		[152794] = {
 			["name"] = L["Amethyst Spireshell"],
 			["announced"] = false
-		},              
+		},
 		[152756] = {
 			["name"] = L["Daggertooth Terror"],
 			["announced"] = false
-		},               
+		},
 		[144644] = {
 			["name"] = L["Mirecrawler"],
 			["announced"] = false
-		},                      
+		},
 		[152465] = {
 			["name"] = L["Needlespine"],
 			["announced"] = false
-		},                      
+		},
 		[152795] = {
 			["name"] = L["Sandclaw Stoneshell"],
 			["announced"] = false
-		},              
+		},
 		[150191] = {
 			["name"] = L["Avarius"],
 			["announced"] = false
-		},                          
+		},
 		[152361] = {
 			["name"] = L["Banescale the Packfather"],
 			["announced"] = false
-		},         
+		},
 		[149653] = {
 			["name"] = L["Carnivorous Lasher"],
 			["announced"] = false
-		},               
+		},
 		[152323] = {
 			["name"] = L["King Gakula"],
 			["announced"] = false
-		},                      
+		},
 		[150583] = {
 			["name"] = L["Rockweed Shambler"],
 			["announced"] = false
-		},                
+		},
 		[151870] = {
 			["name"] = L["Sandcastle"],
 			["announced"] = false
-		},                       
+		},
 		[153898] = {
 			["name"] = L["Tidelord Aquatus"],
 			["announced"] = false
-		},                 
+		},
 		[153928] = {
 			["name"] = L["Tidelord Dispersius"],
 			["announced"] = false
-		},              
+		},
 		[154148] = {
 			["name"] = L["Tidemistress Leth'sindra"],
 			["announced"] = false
-		},         
+		},
 		[150468] = {
 			["name"] = L["Vor'koth"],
 			["announced"] = false
-		},                         
+		},
 		[152566] = {
 			["name"] = L["Anemonar"],
 			["announced"] = false
-		},                         
+		},
 		[152567] = {
 			["name"] = L["Kelpwillow"],
 			["announced"] = false
-		},                       
+		},
 		[152397] = {
 			["name"] = L["Oronu"],
 			["announced"] = false
-		},                            
+		},
 		[152568] = {
 			["name"] = L["Urduu"],
 			["announced"] = false
-		},                            
+		},
 		[152548] = {
 			["name"] = L["Scale Matriarch Gratinax"],
 			["announced"] = false
-		},         
+		},
 		[152542] = {
 			["name"] = L["Scale Matriarch Zodia"],
 			["announced"] = false
-		},            
+		},
 		[152545] = {
 			["name"] = L["Scale Matriarch Vynara"],
 			["announced"] = false
-		},           
+		},
 		[152712] = {
 			["name"] = L["Blindlight"],
 			["announced"] = false
-		},                       
+		},
 		[152556] = {
 			["name"] = L["Chasm-Haunter"],
 			["announced"] = false
-		},                    
+		},
 		[152291] = {
 			["name"] = L["Deepglider"],
 			["announced"] = false
-		},                       
+		},
 		[152555] = {
 			["name"] = L["Elderspawn Nalaada"],
 			["announced"] = false
-		},               
+		},
 		[152414] = {
 			["name"] = L["Elder Unu"],
 			["announced"] = false
-		},                        
+		},
 		[152553] = {
 			["name"] = L["Garnetscale"],
 			["announced"] = false
-		},                      
+		},
 		[152448] = {
 			["name"] = L["Iridescent Glimmershell"],
 			["announced"] = false
-		},          
+		},
 		[152682] = {
 			["name"] = L["Prince Vortran"],
 			["announced"] = false
-		},                   
+		},
 		[152552] = {
 			["name"] = L["Shassera"],
 			["announced"] = false
-		},                         
+		},
 		[152359] = {
 			["name"] = L["Siltstalker the Packmother"],
 			["announced"] = false
-		},       
+		},
 		[152290] = {
 			["name"] = L["Soundless"],
 			["announced"] = false
-		},                        
+		},
 		[152360] = {
 			["name"] = L["Toxigore the Alpha"],
 			["announced"] = false
-		},               
+		},
 		[152416] = {
 			["name"] = L["Allseer Oma'kill"],
 			["announced"] = false
 		},
-
 		-- uldum
 		[157170] = {
 			["name"] = L["Acolyte Taspu"],
@@ -1179,7 +1304,7 @@ function AR:LoadRares()
 		},
 		[161451] = {
 			["name"] = L["Manipulator Yar'shath"],
-			["announced"] = false,
+			["announced"] = false
 		},
 		[157157] = {
 			["name"] = L["Muminah the Incandescent"],
@@ -1334,7 +1459,6 @@ function AR:LoadRares()
 			["name"] = L["Friendly Alpaca"],
 			["announced"] = false
 		},
-		
 		-- vale of the eternal blossom
 		[154087] = {
 			["name"] = L["Zror'um the Infinite"],
@@ -1513,7 +1637,6 @@ function AR:LoadRares()
 			["name"] = L["Skiver"],
 			["announced"] = false
 		},
-
 		-- Shadowlands additions
 
 		-- the maw
@@ -1601,7 +1724,120 @@ function AR:LoadRares()
 		[175012] = {
 			["name"] = L["Ikras the Devourer"],
 			["announced"] = false
+		},
+		-- kothria
+		-- from: https://www.wowhead.com/guides/shadowlands-korthia-desmotaeron-rares-treasures
+		[180246] = {
+			["name"] = L["Carriage Crusher"],
+			["announced"] = false
+		},
+		[179768] = {
+			["name"] = L["Consumption"],
+			["announced"] = false
+		},
+		[177903] = {
+			["name"] = L["Dominated Protector"],
+			["announced"] = false
+		},
+		[179684] = {
+			["name"] = L["Malbog"],
+			["announced"] = false
+		},
+		[179108] = {
+			["name"] = L["Kroke the Tormented"],
+			["announced"] = false
+		},
+		[179760] = {
+			["name"] = L["Towering Exterminator"],
+			["announced"] = false
+		},
+		[179472] = {
+			["name"] = L["Konthrogz the Obliterator"],
+			["announced"] = false
+		},
+		[180162] = {
+			["name"] = L["Ve'rayn"],
+			["announced"] = false
+		},
+		[180160] = {
+			["name"] = L["Reliwik the Defiant"],
+			["announced"] = false
+		},
+		[177336] = {
+			["name"] = L["Zelnithop"],
+			["announced"] = false
+		},
+		[179931] = {
+			["name"] = L["Relic Breaker Krelva"],
+			["announced"] = false
+		},
+		[180032] = {
+			["name"] = L["Wild Worldcracker"],
+			["announced"] = false
+		},
+		[180042] = {
+			["name"] = L["Fleshwing"],
+			["announced"] = false
+		},
+		[180014] = {
+			["name"] = L["Escaped Wilderling"],
+			["announced"] = false
+		},
+		[179985] = {
+			["name"] = L["Stygian Stonecrusher"],
+			["announced"] = false
+		},
+		[179802] = {
+			["name"] = L["Yarxhov the Pillager"],
+			["announced"] = false
+		},
+		[179859] = {
+			["name"] = L["Xyraxz the Unknowable"],
+			["announced"] = false
+		},
+		[179914] = {
+			["name"] = L["Observer Yorik"],
+			["announced"] = false
+		},
+		[179911] = {
+			["name"] = L["Silent Soulstalker"],
+			["announced"] = false
+		},
+		[179608] = {
+			["name"] = L["Screaming Shade"],
+			["announced"] = false
+		},
+		[179913] = {
+			["name"] = L["Deadsoul Hatcher"],
+			["announced"] = false
+		},
+		[179460] = {
+			["name"] = L["Fallen Charger"],
+			["announced"] = false
+		},
+		[179779] = {
+			["name"] = L["Deomen the Vortex"],
+			["announced"] = false
+		},
+		[179805] = {
+			["name"] = L["Traitor Balthier"],
+			["announced"] = false
+		},
+		[177444] = {
+			["name"] = L["Ylva"],
+			["announced"] = false
+		},
+		[179851] = {
+			["name"] = L["Guard Orguluus"],
+			["announced"] = false
+		},
+		[179853] = {
+			["name"] = L["Blinding Shadow"],
+			["announced"] = false
+		},
+		[179735] = {
+			["name"] = L["Torglluun"],
+			["announced"] = false
 		}
-
 	}
 end
