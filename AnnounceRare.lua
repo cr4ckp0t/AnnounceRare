@@ -283,7 +283,8 @@ local function GetGeneralChannelNumber()
 		return false
 	end
 	return GetChannelName(
-		GetLocale() == "ruRU" and channelRUFormat:format(general, zoneText) or channelFormat:format(general, zoneText)
+		(GetLocale() == "ruRU" or GetLocale() == "esMX") and channelRUFormat:format(general, zoneText) or
+			channelFormat:format(general, zoneText)
 	)
 end
 
