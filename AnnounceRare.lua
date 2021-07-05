@@ -46,7 +46,7 @@ AR.title = GetAddOnMetadata("AnnounceRare", "Title")
 AR.version = GetAddOnMetadata("AnnounceRare", "Version")
 AR.cooldown = 180 -- 3 minutes
 AR.mouseCooldown = 30 -- 30 seconds
-AR.linkCooldown = 60 -- 1 minute
+AR.linkCooldown = 15 -- 1 minute
 AR.zones = {
 	1462, -- mechagon
 	1355, -- nazjatar
@@ -262,16 +262,16 @@ local function GetTargetId()
 	if guid == nil then
 		return nil
 	end
-	local unitType, _, _, _, _, unitId = strsplit("-", guid)
-	return (unitType == "Creature" or UnitType == "Vehicle") and tonumber(unitId) or nil
+	local unitType, _, _, _, _, unitId, _ = strsplit("-", guid)
+	return (unitType == "Creature" or unitType == "Vehicle") and tonumber(unitId) or nil
 end
 
 local function GetNPCGUID(guid)
 	if guid == nil then
 		return nil
 	end
-	local unitType, _, _, _, _, unitId = strsplit("-", guid)
-	return (unitType == "Creature" or UnitType == "Vehicle") and tonumber(unitId) or nil
+	local unitType, _, _, _, _, unitId, _ = strsplit("-", guid)
+	return (unitType == "Creature" or unitType == "Vehicle") and tonumber(unitId) or nil
 end
 
 local function GetGeneralChannelNumber()
@@ -332,7 +332,7 @@ end
 function AR:ParseLink(link, text, button, frame)
 	local linkType, id, health, healthMax = strsplit(":", link)
 
-	if self.db.global.debug then
+	if self.db.global.debug and linkType:find("AR2_") and linkType ~= "AR2_DEATH" then
 		self:DebugPrint((L["Link Type: %s, ID: %s, Health: %s, Max: %s"]):format(linkType, id, health, healthMax))
 	end
 
@@ -610,6 +610,9 @@ function AR:PLAYER_TARGET_CHANGED()
 			return
 		end
 
+		--[[if self.db.global.debug then
+			self:DebugPrint((L["Target ID: %s"]):format(tarId))
+		end]]
 		if tarId ~= nil and self:ValidNPC(tarId) and self.rares[tarId].announced == false then
 			if UnitIsDead("target") then
 				if self.db.global.debug then
@@ -620,6 +623,8 @@ function AR:PLAYER_TARGET_CHANGED()
 			self:Print(chatLink:format(tarId, UnitHealth("target"), UnitHealthMax("target"), self.rares[tarId].name))
 			self.db.global.linkLastSeen = tarId
 			self.db.global.linkLastTime = time()
+		elseif tarId == nil then
+			self:Print((L["Unable to determine %s's ID."]):format(UnitName("target")))
 		end
 	end
 end
@@ -1730,6 +1735,10 @@ function AR:LoadRares()
 		-- from: https://www.wowhead.com/guides/shadowlands-korthia-desmotaeron-rares-treasures
 		[180246] = {
 			["name"] = L["Carriage Crusher"],
+			["announced"] = false
+		},
+		[179755] = {
+			["name"] = L["Consumption"],
 			["announced"] = false
 		},
 		[179768] = {
