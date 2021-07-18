@@ -1,7 +1,7 @@
 ## Interface: 90100
 ## Author: Crackpot
 ## Title: Announce Rare
-## Version: 3.2.2
+## Version: 3.2.3
 ## Notes: Announce rares to general chat.
 ## SavedVariables: AnnounceRareDB
 ## OptionalDeps: TomTom
@@ -31,3 +31,4 @@ Locales\zhCN.lua
 Locales\zhTW.lua
 
 AnnounceRare.lua
+RareDB.lua
