@@ -338,6 +338,10 @@ local function GetVerbage(key)
 		return L["Cache"]
 	elseif key == "crate" then
 		return L["Relic Crate"]
+	elseif key == "teleporter" or key == "tele" then
+		return L["Active Teleporter"]
+	elseif key == "maelie" then
+		return L["Maelie"]
 	else
 		return
 	end
@@ -608,18 +612,19 @@ function AR:PLAYER_TARGET_CHANGED()
 			return
 		end
 
-		-- internal cooldown of 1 minute to prevent spam
+		--[[ internal cooldown of 1 minute to prevent spam
 		if self.db.global.linkLastSeen == tarId and self.db.global.linkLastTime < time() - self.linkCooldown then
 			if self.db.global.debug then
 				self:DebugPrint(L["Chat link skipped due to throttle."])
 			end
 			return
-		end
-
+		end]]
 		--[[if self.db.global.debug then
 			self:DebugPrint((L["Target ID: %s"]):format(tarId))
 		end]]
 		if tarId ~= nil and self:ValidNPC(tarId) and self.rares[tarId].announced == false then
+			-- self.db.global.linkLastSeen = tarId
+			-- self.db.global.linkLastTime = time()
 			if UnitIsDead("target") then
 				if self.db.global.debug then
 					self:DebugPrint(L["Chat link skipped due to target being dead."])
@@ -627,9 +632,7 @@ function AR:PLAYER_TARGET_CHANGED()
 				return
 			end
 			self:Print(chatLink:format(tarId, UnitHealth("target"), UnitHealthMax("target"), self.rares[tarId].name))
-			self.db.global.linkLastSeen = tarId
-			self.db.global.linkLastTime = time()
-		elseif tarId == nil then
+		elseif tarId == nil and self.db.global.debug then
 			self:Print((L["Unable to determine %s's ID."]):format(UnitName("target")))
 		end
 	end
@@ -795,7 +798,10 @@ function AR:PLAYER_ENTERING_WORLD()
 				else
 					self:Print(("%s: %s"):format(L["Zone ID:"], C_Map_GetBestMapForUnit("player")))
 				end
-			elseif key == "tear" or key == "key" or key == "crate" or key == "cache" then
+			elseif
+				key == "tear" or key == "key" or key == "crate" or key == "cache" or key == "teleporter" or key == "tele" or
+					key == "maelie"
+			 then
 				if self.correctZone then
 					local genId = GetGeneralChannelNumber()
 					local bestMap = C_Map_GetBestMapForUnit("player")
@@ -803,7 +809,7 @@ function AR:PLAYER_ENTERING_WORLD()
 					C_Map_SetUserWaypoint(UiMapPoint.CreateFromCoordinates(bestMap, tarPos.x, tarPos.y))
 					SendChatMessage(
 						(L["%s at %s, %s! %s"]):format(
-							GetVerbage(key),
+							GetVerbage(key:lower()),
 							ceil(tarPos.x * 10000) / 100,
 							ceil(tarPos.y * 10000) / 100,
 							C_Map_GetUserWaypointHyperlink()
