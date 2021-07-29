@@ -629,7 +629,7 @@ function AR:PLAYER_TARGET_CHANGED()
 			self:Print(chatLink:format(tarId, UnitHealth("target"), UnitHealthMax("target"), self.rares[tarId].name))
 		elseif tarId == nil and self.db.global.debug then
 			self:DebugPrint((L["Unable to determine %s's ID."]):format(UnitName("target")))
-		elseif self.rares[tarId].announced and self.db.global.debug then
+		elseif tarId ~= nil and self.rares[tarId].announced and self.db.global.debug then
 			self:DebugPrint((L["%s has already been announced."]):format(self.rares[tarId].name))
 		end
 	end
