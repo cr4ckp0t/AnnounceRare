@@ -443,7 +443,6 @@ end
 
 function AR:AnnounceRare(id, tarHealth, tarHealthMax)
 	local tarCombat = UnitAffectingCombat("target")
-	--local tarHealth, tarHealthMax = UnitHealth("target"), UnitHealthMax("target")
 	local bestMap = C_Map_GetBestMapForUnit("player")
 	local tarPos = C_Map_GetPlayerMapPosition(bestMap, "player")
 	local genId = GetGeneralChannelNumber()
@@ -469,7 +468,6 @@ function AR:AnnounceRare(id, tarHealth, tarHealthMax)
 	else
 		-- set a user waypoint to be able to send a link
 		C_Map_SetUserWaypoint(UiMapPoint.CreateFromCoordinates(bestMap, tarPos.x, tarPos.y))
-		-- local messageToSend = L["%s%s (%s/%s %.2f%%) %.2f %.2f %s"]
 		SendChatMessage(
 			messageToSend:format(
 				self.db.global.advertise == true and "AnnounceRare: " or "",
@@ -605,7 +603,7 @@ function AR:Print(msg)
 end
 
 function AR:PLAYER_TARGET_CHANGED()
-	if self.db.global.autoAnnounce and self.correctZone then
+	if self.correctZone then
 		local tarId = GetTargetId()
 
 		if not tarId or tarId == nil then
@@ -619,9 +617,6 @@ function AR:PLAYER_TARGET_CHANGED()
 			end
 			return
 		end]]
-		--[[if self.db.global.debug then
-			self:DebugPrint((L["Target ID: %s"]):format(tarId))
-		end]]
 		if tarId ~= nil and self:ValidNPC(tarId) and self.rares[tarId].announced == false then
 			-- self.db.global.linkLastSeen = tarId
 			-- self.db.global.linkLastTime = time()
@@ -633,7 +628,9 @@ function AR:PLAYER_TARGET_CHANGED()
 			end
 			self:Print(chatLink:format(tarId, UnitHealth("target"), UnitHealthMax("target"), self.rares[tarId].name))
 		elseif tarId == nil and self.db.global.debug then
-			self:Print((L["Unable to determine %s's ID."]):format(UnitName("target")))
+			self:DebugPrint((L["Unable to determine %s's ID."]):format(UnitName("target")))
+		elseif self.rares[tarId].announced and self.db.global.debug then
+			self:DebugPrint((L["%s has already been announced."]):format(self.rares[tarId].name))
 		end
 	end
 end
