@@ -442,7 +442,6 @@ function AR:AnnounceDrill(id)
 end
 
 function AR:AnnounceRare(id, tarHealth, tarHealthMax)
-	local tarCombat = UnitAffectingCombat("target")
 	local bestMap = C_Map_GetBestMapForUnit("player")
 	local tarPos = C_Map_GetPlayerMapPosition(bestMap, "player")
 	local genId = GetGeneralChannelNumber()
@@ -456,13 +455,12 @@ function AR:AnnounceRare(id, tarHealth, tarHealthMax)
 	end
 
 	-- internal cooldown of 3 minutes to prevent spam
-	if self.db.global.lastSeen == id and self.db.global.lastTime < time() - self.cooldown then
+	--[[if self.db.global.lastSeen == id and self.db.global.lastTime < time() - self.cooldown then
 		if self.db.global.debug then
 			self:DebugPrint(L["Skipping print due to throttle."])
 		end
 		return
-	end
-
+	end]]
 	if AR.db.global.output:upper() == "CHANNEL" and not genId then
 		self:Print(L["Unable to determine your general channel number."])
 	else
@@ -491,8 +489,8 @@ function AR:AnnounceRare(id, tarHealth, tarHealthMax)
 			self:UpdateDuplicates(id)
 		end
 
-		self.db.global.lastSeen = id
-		self.db.global.lastTime = time()
+		self.db.global.lastSeen = nil
+		self.db.global.lastTime = nil --time()
 		self.rares[id].announced = true
 	end
 end
