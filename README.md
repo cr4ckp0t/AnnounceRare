@@ -1,4 +1,4 @@
-# Announce Rare For 9.1
+# Announce Rare For 9.2
 
 This is a simple addon to assist others in the same zone as you when you find a rare. It will announce the rare's name, current health, engaged or not, coordinates, and provide a push pin to quickly locate the mob. Death announcements are also provided so others won't waste their time coming to your location only to find a death mob.
 
@@ -30,3 +30,7 @@ The folowwing is an updated list of zones where rares are currently being tracke
 ### Patch 9.1 - _Chains of Domination_
 
 * [Korthia, the City of Secrets](https:_www.wowhead.com/zone=13570/korthia)
+
+### Patch 9.2 - _Eternity's End_
+
+* [Zereth Mortis](https://www.wowhead.com/zereth-mortis)
