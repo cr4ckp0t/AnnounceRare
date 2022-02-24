@@ -1,7 +1,7 @@
 ## Interface: 90105
-## Author: Crackpot
+## Author: Crackpot, Zereth Mortis by pjbehr87
 ## Title: Announce Rare
-## Version: 3.2.10
+## Version: 3.3.0
 ## Notes: Announce rares to general chat.
 ## SavedVariables: AnnounceRareDB
 ## OptionalDeps: TomTom

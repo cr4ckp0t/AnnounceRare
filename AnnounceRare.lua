@@ -54,7 +54,8 @@ AR.zones = {
 	1527, -- uldum
 	1571, -- uldum (vision zone)
 	1543, -- the maw
-	1961 -- kothria
+	1961, -- kothria
+	1970 -- zereth mortis
 }
 local band = bit.band
 local ceil = math.ceil
