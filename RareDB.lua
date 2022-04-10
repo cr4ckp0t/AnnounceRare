@@ -979,6 +979,115 @@ function AR:LoadRares()
         [179735] = {
             ["name"] = L["Torglluun"],
             ["announced"] = false
-        }
+        },
+        -- Zereth Mortis
+        [180746] = {
+            ["name"] = L["Protector of the First Ones"],
+            ["announced"] = false
+        },
+        [180917] = {
+            ["name"] = L["Destabilized Core"],
+            ["announced"] = false
+        },
+        [180924] = {
+            ["name"] = L["Garudeon"],
+            ["announced"] = false
+        },
+        [180978] = {
+            ["name"] = L["Hirukon"],
+            ["announced"] = false
+        },
+        [181249] = {
+            ["name"] = L["Tethos"],
+            ["announced"] = false
+        },
+        [181360] = {
+            ["name"] = L["Vexis"],
+            ["announced"] = false
+        },
+        [182114] = {
+            ["name"] = L["Iska, Outrider of Ruin"],
+            ["announced"] = false
+        },
+        [182155] = {
+            ["name"] = L["High Reaver Damaris"],
+            ["announced"] = false
+        },
+        [182158] = {
+            ["name"] = L["Reanimatrox Marzan"],
+            ["announced"] = false
+        },
+        [182318] = {
+            ["name"] = L["General Zarathura"],
+            ["announced"] = false
+        },
+        [183516] = {
+            ["name"] = L["The Engulfer"],
+            ["announced"] = false
+        },
+        [183596] = {
+            ["name"] = L["Chitali the Eldest"],
+            ["announced"] = false
+        },
+        [183646] = {
+            ["name"] = L["Furidian"],
+            ["announced"] = false
+        },
+        [183722] = {
+            ["name"] = L["Sorranos"],
+            ["announced"] = false
+        },
+        [183737] = {
+            ["name"] = L["Xy'rath the Covetous"],
+            ["announced"] = false
+        },
+        [183746] = {
+            ["name"] = L["Otiosen"],
+            ["announced"] = false
+        },
+        [183747] = {
+            ["name"] = L["Vitiane"],
+            ["announced"] = false
+        },
+        [183748] = {
+            ["name"] = L["Helmix"],
+            ["announced"] = false
+        },
+        [183749] = {
+            ["name"] = L["Helmix"],
+            ["announced"] = false
+        },
+        [183764] = {
+            ["name"] = L["Zatojin"],
+            ["announced"] = false
+        },
+        [183814] = {
+            ["name"] = L["Otaris the Provoked"],
+            ["announced"] = false
+        },
+        [183925] = {
+            ["name"] = L["Tahkwitz"],
+            ["announced"] = false
+        },
+        [183927] = {
+            ["name"] = L["Sand Matriarch Ileus"],
+            ["announced"] = false
+        },
+        [183953] = {
+            ["name"] = L["Corrupted Architect"],
+            ["announced"] = false
+        },
+        [184409] = {
+            ["name"] = L["Euv'ouk"],
+            ["announced"] = false
+        },
+        [184413] = {
+            ["name"] = L["Shifting Stargorger"],
+            ["announced"] = false
+        },
+        [184804] = {
+            ["name"] = L["Helmix"],
+            ["announced"] = false
+        },
     }
 end

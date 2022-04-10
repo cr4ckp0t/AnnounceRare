@@ -30,3 +30,7 @@ The folowwing is an updated list of zones where rares are currently being tracke
 ### Patch 9.1 - _Chains of Domination_
 
 * [Korthia, the City of Secrets](https:_www.wowhead.com/zone=13570/korthia)
+
+### Patch 9.2 - _Eternity's End_
+
+* [Zereth Mortis](https://www.wowhead.com/zereth-mortis)
