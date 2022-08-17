@@ -1,7 +1,7 @@
-## Interface: 90205
+## Interface: 90207
 ## Author: Crackpot
 ## Title: Announce Rare
-## Version: 3.3.1
+## Version: 3.3.2
 ## Notes: Announce rares to general chat.
 ## SavedVariables: AnnounceRareDB
 ## OptionalDeps: TomTom
