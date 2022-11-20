@@ -1057,6 +1057,10 @@ function AR:LoadRares()
             ["name"] = "Helmix",
             ["announced"] = false
         },
+        [184804] = {
+            ["name"] = "Helmix",
+            ["announced"] = false
+        },
         [183764] = {
             ["name"] = "Zatojin",
             ["announced"] = false
@@ -1085,8 +1089,32 @@ function AR:LoadRares()
             ["name"] = "Shifting Stargorger",
             ["announced"] = false
         },
-        [184804] = {
-            ["name"] = "Helmix",
+        [178963] = {
+            ["name"] = "Gorkek",
+            ["announced"] = false
+        },
+        [179006] = {
+            ["name"] = "Akkaris",
+            ["announced"] = false
+        },
+        [178563] = {
+            ["name"] = "Hadeon the Stonebreaker",
+            ["announced"] = false
+        },
+        [178778] = {
+            ["name"] = "Gluttonous Overgrowth",
+            ["announced"] = false
+        },
+        [178229] = {
+            ["name"] = "Feasting",
+            ["announced"] = false
+        },
+        [179043] = {
+            ["name"] = "Orixal",
+            ["announced"] = false
+        },
+        [178508] = {
+            ["name"] = "Mother Phestis",
             ["announced"] = false
         },
     }
