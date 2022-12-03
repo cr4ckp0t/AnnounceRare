@@ -1089,5 +1089,514 @@ function AR:LoadRares()
             ["name"] = "Helmix",
             ["announced"] = false
         },
+
+        -- 10.0.2 Dragonflight Rares
+        -- The Azure Span
+        [193632] = {
+            ["name"] = "Wilrive",
+            ["announced"] = false
+        },
+        [194270] = {
+            ["name"] = "Arcane Devourer",
+            ["announced"] = false
+        },
+        [191356] = {
+            ["name"] = "Frostpaw",
+            ["announced"] = false
+        },
+        [194392] = {
+            ["name"] = "Brackle",
+            ["announced"] = false
+        },
+        [194210] = {
+            ["name"] = "Azure Pathfinder",
+            ["announced"] = false
+        },
+        [193225] = {
+            ["name"] = "Notfar the Unbearable",
+            ["announced"] = false
+        },
+        [190244] = {
+            ["name"] = "Mahg the Trampler",
+            ["announced"] = false
+        },
+        [193251] = {
+            ["name"] = "Gruffy",
+            ["announced"] = false
+        },
+        [193693] = {
+            ["name"] = "Rusthide",
+            ["announced"] = false
+        },
+        [193691] = {
+            ["name"] = "Fisherman Tinnak",
+            ["announced"] = false
+        },
+        [193708] = {
+            ["name"] = "Skald the Impaler",
+            ["announced"] = false
+        },
+        [193735] = {
+            ["name"] = "Moth'go Deeploom",
+            ["announced"] = false
+        },
+        [193167] = {
+            ["name"] = "Swagraal the Swollen",
+            ["announced"] = false
+        },
+        [193178] = {
+            ["name"] = "Blightfur",
+            ["announced"] = false
+        },
+        [197344] = {
+            ["name"] = "Snarglebone",
+            ["announced"] = false
+        },
+        [197354] = {
+            ["name"] = "Gnarls",
+            ["announced"] = false
+        },
+        [197371] = {
+            ["name"] = "Ravenous Tundra Bear",
+            ["announced"] = false
+        },
+        [193157] = {
+            ["name"] = "Dragonhunter Gorund",
+            ["announced"] = false
+        },
+        [198004] = {
+            ["name"] = "Mange the Outcast",
+            ["announced"] = false
+        },
+        [193201] = {
+            ["name"] = "Mucka the Raker",
+            ["announced"] = false
+        },
+        [193698] = {
+            ["name"] = "Frigidpelt Den Mother",
+            ["announced"] = false
+        },
+        [193116] = {
+            ["name"] = "Beogoka",
+            ["announced"] = false
+        },
+        [193259] = {
+            ["name"] = "Blue Terror",
+            ["announced"] = false
+        },
+        [193149] = {
+            ["name"] = "Skag the Thrower",
+            ["announced"] = false
+        },
+        [193269] = {
+            ["name"] = "Grumbletrunk",
+            ["announced"] = false
+        },
+        [193196] = {
+            ["name"] = "Trilvarus Loreweaver",
+            ["announced"] = false
+        },
+        [193706] = {
+            ["name"] = "Snufflegust",
+            ["announced"] = false
+        },
+        [193710] = {
+            ["name"] = "Seereel, the Spring",
+            ["announced"] = false
+        },
+        [193634] = {
+            ["name"] = "Swog'ranka",
+            ["announced"] = false
+        },
+        [197557] = {
+            ["name"] = "Bisquius",
+            ["announced"] = false
+        },
+        [193238] = {
+            ["name"] = "Spellwrought Snowman",
+            ["announced"] = false
+        },
+        [197353] = {
+            ["name"] = "Blisterhide",
+            ["announced"] = false
+        },
+        [197356] = {
+            ["name"] = "High Shaman Rotknuckle",
+            ["announced"] = false
+        },
+        [197411] = {
+            ["name"] = "Astray Splasher",
+            ["announced"] = false
+        },
+
+        -- The Ohn'ahran Plains
+        [193165] = {
+            ["name"] = "Sparkspitter Vrak",
+            ["announced"] = false
+        },
+        [193142] = {
+            ["name"] = "Enraged Sapphire",
+            ["announced"] = false
+        },
+        [193209] = {
+            ["name"] = "Zenet Avis",
+            ["announced"] = false
+        },
+        [189652] = {
+            ["name"] = "Deadwaker Ghendish",
+            ["announced"] = false
+        },
+        [193173] = {
+            ["name"] = "Mikrin of the Raging Winds",
+            ["announced"] = false
+        },
+        [193123] = {
+            ["name"] = "Steamgill",
+            ["announced"] = false
+        },
+        [193235] = {
+            ["name"] = "Oshigol",
+            ["announced"] = false
+        },
+        [192045] = {
+            ["name"] = "Windseeker Avash",
+            ["announced"] = false
+        },
+        [193140] = {
+            ["name"] = "Zarizz",
+            ["announced"] = false
+        },
+        [187559] = {
+            ["name"] = "Shade of Grief",
+            ["announced"] = false
+        },
+        [187781] = {
+            ["name"] = "Hamett",
+            ["announced"] = false
+        },
+        [188124] = {
+            ["name"] = "Irontree",
+            ["announced"] = false
+        },
+        [191842] = {
+            ["name"] = "Sulfurion",
+            ["announced"] = false
+        },
+        [195204] = {
+            ["name"] = "The Jolly Giant",
+            ["announced"] = false
+        },
+        [192453] = {
+            ["name"] = "Vaniik the Stormtouched",
+            ["announced"] = false
+        },
+        [195186] = {
+            ["name"] = "Cinta the Forgotten",
+            ["announced"] = false
+        },
+        [195409] = {
+            ["name"] = "Makhra the Ashtouched",
+            ["announced"] = false
+        },
+        [196350] = {
+            ["name"] = "Old Stormhide",
+            ["announced"] = false
+        },
+        [193136] = {
+            ["name"] = "Scav Notail",
+            ["announced"] = false
+        },
+        [193188] = {
+            ["name"] = "Seeker Teryx",
+            ["announced"] = false
+        },
+        [197009] = {
+            ["name"] = "Liskheszaera",
+            ["announced"] = false
+        },
+        [196010] = {
+            ["name"] = "Researcher Sneakwing",
+            ["announced"] = false
+        },
+        [193227] = {
+            ["name"] = "Ronsak the Decimator",
+            ["announced"] = false
+        },
+        [193212] = {
+            ["name"] = "Malsegan",
+            ["announced"] = false
+        },
+        [193170] = {
+            ["name"] = "Fulgurb",
+            ["announced"] = false
+        },
+        [192020] = {
+            ["name"] = "Eaglemaster Niraak",
+            ["announced"] = false
+        },
+        [193215] = {
+            ["name"] = "Scaleseeker Mezeri",
+            ["announced"] = false
+        },
+        [187219] = {
+            ["name"] = "Nokhud Warmaster",
+            ["announced"] = false
+        },
+        [188095] = {
+            ["name"] = "Hunter of Deep",
+            ["announced"] = false
+        },
+        [188451] = {
+            ["name"] = "Zerimek",
+            ["announced"] = false
+        },
+        [191950] = {
+            ["name"] = "Porta the Overgrown",
+            ["announced"] = false
+        },
+        [192364] = {
+            ["name"] = "Windscale the Stormborn",
+            ["announced"] = false
+        },
+        [192557] = {
+            ["name"] = "Quackers the Terrible",
+            ["announced"] = false
+        },
+        [195223] = {
+            ["name"] = "Rustlily",
+            ["announced"] = false
+        },
+        [196334] = {
+            ["name"] = "The Great Enla",
+            ["announced"] = false
+        },
+
+        -- Thaldraszus
+        [193143] = {
+            ["name"] = "Razk'vex the Untamed",
+            ["announced"] = false
+        },
+        [193128] = {
+            ["name"] = "Blightpaw the Depraved",
+            ["announced"] = false
+        },
+        [193125] = {
+            ["name"] = "Goremaul the Gluttonous",
+            ["announced"] = false
+        },
+        [193246] = {
+            ["name"] = "Matriarch Remalla",
+            ["announced"] = false
+        },
+        [193258] = {
+            ["name"] = "Tempestrian",
+            ["announced"] = false
+        },
+        [193234] = {
+            ["name"] = "Eldoren the Reborn",
+            ["announced"] = false
+        },
+        [193220] = {
+            ["name"] = "Broodweaver Araznae",
+            ["announced"] = false
+        },
+        [193666] = {
+            ["name"] = "Rokmur",
+            ["announced"] = false
+        },
+        [183984] = {
+            ["name"] = "The Weeping Vilomah",
+            ["announced"] = false
+        },
+        [191305] = {
+            ["name"] = "The Great Shellkhan",
+            ["announced"] = false
+        },
+        [193241] = {
+            ["name"] = "Lord Epochbrgl",
+            ["announced"] = false
+        },
+        [193126] = {
+            ["name"] = "Innumerable Ruination",
+            ["announced"] = false
+        },
+        [193130] = {
+            ["name"] = "Pleasant Alpha",
+            ["announced"] = false
+        },
+        [193688] = {
+            ["name"] = "Phenran",
+            ["announced"] = false
+        },
+        [193210] = {
+            ["name"] = "Phleep",
+            ["announced"] = false
+        },
+        [193146] = {
+            ["name"] = "Treasure-Mad Trambladd",
+            ["announced"] = false
+        },
+        [193240] = {
+            ["name"] = "Riverwalker Tamopo",
+            ["announced"] = false
+        },
+        [193176] = {
+            ["name"] = "Sandana the Tempest",
+            ["announced"] = false
+        },
+        [193161] = {
+            ["name"] = "Woolfang",
+            ["announced"] = false
+        },
+        [193663] = {
+            ["name"] = "Craggravated Elemental",
+            ["announced"] = false
+        },
+        [193658] = {
+            ["name"] = "Corrupted Proto-Dragon",
+            ["announced"] = false
+        },
+        [193664] = {
+            ["name"] = "Ancient Protector",
+            ["announced"] = false
+        },
+        [193229] = {
+            ["name"] = "Henlare",
+            ["announced"] = false
+        },
+        [193243] = {
+            ["name"] = "Acrosoth",
+            ["announced"] = false
+        },
+
+        -- The Waking Shores
+        [196056] = {
+            ["name"] = "Gushgut the Beaksinker",
+            ["announced"] = false
+        },
+        [187945] = {
+            ["name"] = "Anhydros the Tidetaker",
+            ["announced"] = false
+        },
+        [199645] = {
+            ["name"] = "Helmet Missingway",
+            ["announced"] = false
+        },
+        [193217] = {
+            ["name"] = "Drakewing",
+            ["announced"] = false
+        },
+        [193135] = {
+            ["name"] = "Azra's Prized Peony",
+            ["announced"] = false
+        },
+        [193118] = {
+            ["name"] = "O'nank Shorescour",
+            ["announced"] = false
+        },
+        [193132] = {
+            ["name"] = "Amethyzar the Glittering",
+            ["announced"] = false
+        },
+        [193152] = {
+            ["name"] = "Massive Magmashell",
+            ["announced"] = false
+        },
+        [193134] = {
+            ["name"] = "Enkine the Voracious",
+            ["announced"] = false
+        },
+        [192362] = {
+            ["name"] = "Possessive Hornswog",
+            ["announced"] = false
+        },
+        [190985] = {
+            ["name"] = "Death's Shadow",
+            ["announced"] = false
+        },
+        [193266] = {
+            ["name"] = "Lepidoralia the Resplendent",
+            ["announced"] = false
+        },
+        [187598] = {
+            ["name"] = "Rohzor Forgesmash",
+            ["announced"] = false
+        },
+        [190986] = {
+            ["name"] = "Battlehorn Pyrhus",
+            ["announced"] = false
+        },
+        [193232] = {
+            ["name"] = "Rasnar the War Ender",
+            ["announced"] = false
+        },
+        [193271] = {
+            ["name"] = "Shadeslash Trakken",
+            ["announced"] = false
+        },
+        [193256] = {
+            ["name"] = "Nulltheria the Void Gazer",
+            ["announced"] = false
+        },
+        [193181] = {
+            ["name"] = "Skewersnout",
+            ["announced"] = false
+        },
+        [192738] = {
+            ["name"] = "Brundin the Dragonbane",
+            ["announced"] = false
+        },
+        [193148] = {
+            ["name"] = "Thunderous Matriarch",
+            ["announced"] = false
+        },
+        [193228] = {
+            ["name"] = "Snappy",
+            ["announced"] = false
+        },
+        [193120] = {
+            ["name"] = "Smogswog the Firebreather",
+            ["announced"] = false
+        },
+        [186827] = {
+            ["name"] = "Magmaton",
+            ["announced"] = false
+        },
+        [193154] = {
+            ["name"] = "Forgotten Gryphon",
+            ["announced"] = false
+        },
+        [193198] = {
+            ["name"] = "Captain Lancer",
+            ["announced"] = false
+        },
+        [186859] = {
+            ["name"] = "Worldcarver A'tir",
+            ["announced"] = false
+        },
+        [189822] = {
+            ["name"] = "Shas'ith",
+            ["announced"] = false
+        },
+        [186783] = {
+            ["name"] = "Cauldronbearer Blakor",
+            ["announced"] = false
+        },
+        [187886] = {
+            ["name"] = "Turboris",
+            ["announced"] = false
+        },
+        [190991] = {
+            ["name"] = "Char",
+            ["announced"] = false
+        },
+        [187306] = {
+            ["name"] = "Morchok",
+            ["announced"] = false
+        },
+        [193175] = {
+            ["name"] = "Slurpo, the Incredible Snail",
+            ["announced"] = false
+        },
     }
 end

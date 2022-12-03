@@ -56,6 +56,13 @@ AR.zones = {
 	1543, -- the maw
 	1961, -- kothria
 	1970, -- zereth mortis
+
+	-- dragonflight
+	2022, -- the waking shores
+	2023, -- ohn'ahran plains
+	2024, -- the azure span
+	2025, -- thaldraszus
+
 }
 local band = bit.band
 local ceil = math.ceil
@@ -594,11 +601,11 @@ function AR:CheckZone(...)
 end
 
 function AR:DebugPrint(msg)
-	print(("|cffff7d0a%s:|r |cffffff00%s|r"):format(L["AR2 Log"], msg))
+	print(("|cffff7d0a%s:|r |cffffff00%s|r"):format(L["AR Log"], msg))
 end
 
 function AR:Print(msg)
-	print(("|cffff7d0a%s:|r |cffffffff%s|r"):format(L["AR2"], msg))
+	print(("|cffff7d0a%s:|r |cffffffff%s|r"):format(L["AR"], msg))
 end
 
 function AR:PLAYER_TARGET_CHANGED()
@@ -796,8 +803,10 @@ function AR:PLAYER_ENTERING_WORLD()
 				if not self.db.global.debug then
 					self:Print(L["Debugging must be enabled to use this command."])
 				else
-					self:Print(("%s: %s"):format(L["Zone ID:"], C_Map_GetBestMapForUnit("player")))
+					self:Print(("%s: %s"):format(L["Zone ID"], C_Map_GetBestMapForUnit("player")))
 				end
+			elseif key == "check" then
+				self:Print((L["You are%s in a correct zone."]):format(self.correctZone and "" or L[" NOT"]))
 			elseif
 				key == "tear" or key == "key" or key == "crate" or key == "cache" or key == "teleporter" or key == "tele" or
 					key == "maelie"
