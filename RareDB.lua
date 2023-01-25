@@ -1496,6 +1496,11 @@ function AR:LoadRares()
             ["name"] = "Acrosoth",
             ["announced"] = false
         },
+		[193273] = {
+			["name"] = "Liskron the Dazzling",
+			["announced"] = false
+		},
+
 
         -- The Waking Shores
         [196056] = {
