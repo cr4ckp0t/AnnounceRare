@@ -1631,5 +1631,79 @@ function AR:LoadRares()
             ["name"] = "Slurpo, the Incredible Snail",
             ["announced"] = false
         },
+		
+	-- Elemental Storm Rares
+	[193648] = {
+		["name"] = "Infernum",
+		["announced"] = false
+	},
+	[193645] = {
+		["name"] = "Crystalus",
+		["announced"] = false
+	},
+	[193644] = {
+		["name"] = "Bouldron",
+		["announced"] = false
+	},
+	[193647] = {
+		["name"] = "Karantun",
+		["announced"] = false
+	},
+	[193686] = {
+		["name"] = "Neela Firebane",
+		["announced"] = false
+	},
+	[193682] = {
+		["name"] = "Rouen Icewind",
+		["announced"] = false
+	},
+	[193680] = {
+		["name"] = "Zurgaz Corebreaker",
+		["announced"] = false
+	},
+	[193684] = {
+		["name"] = "Pipspark Thundersnap",
+		["announced"] = false
+	},
+	[193652] = {
+		["name"] = "Grizzlerock",
+		["announced"] = false
+	},
+	[193674] = {
+		["name"] = "Voraazka",
+		["announced"] = false
+	},
+	[193675] = {
+		["name"] = "Kain Firebrand",
+		["announced"] = false
+	},
+	[193677] = {
+		["name"] = "Maeleera",
+		["announced"] = false
+	},
+	[193678] = {
+		["name"] = "Fieraan",
+		["announced"] = false
+	},
+	[193679] = {
+		["name"] = "Leerain",
+		["announced"] = false
+	},
+	[193653] = {
+		["name"] = "Gaelzion",
+		["announced"] = false
+	},
+	[193654] = {
+		["name"] = "Gravlion",
+		["announced"] = false
+	},
+	[193650] = {
+		["name"] = "Emblazion",
+		["announced"] = false
+	},
+	[193655] = {
+		["name"] = "Frozion",
+		["announced"] = false
+	},
     }
 end
