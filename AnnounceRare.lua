@@ -58,6 +58,7 @@ AR.zones = {
 	1970, -- zereth mortis
 
 	-- dragonflight
+	1978, -- obsidian throne
 	2022, -- the waking shores
 	2023, -- ohn'ahran plains
 	2024, -- the azure span
@@ -590,10 +591,7 @@ function AR:CheckZone(...)
 		if (FindInArray(mapId, self.zones) or FindInArray(mapInfo["parentMapID"], self.zones)) and self.correctZone == false then
 			self.correctZone = true
 			self.zoneText = mapId == 1462 and "mechagon" or "nazjatar"
-		elseif
-			(FindInArray(mapId, self.zones) == false and FindInArray(mapInfo["parentMapID"], self.zones) == false) and
-				self.correctZone == true
-		 then
+		elseif (FindInArray(mapId, self.zones) == false and FindInArray(mapInfo["parentMapID"], self.zones) == false) and self.correctZone == true then
 			self.correctZone = false
 			self.zoneText = nil
 		end

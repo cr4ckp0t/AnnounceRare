@@ -1631,5 +1631,9 @@ function AR:LoadRares()
             ["name"] = "Slurpo, the Incredible Snail",
             ["announced"] = false
         },
+        [192737] = {
+            ["name"] = "Qalashi War Mammoth",
+            ["announced"] = false
+        },
     }
 end
