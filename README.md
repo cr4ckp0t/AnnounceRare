@@ -42,3 +42,7 @@ The folowwing is an updated list of zones where rares are currently being tracke
 * [Thaldraszus](https://www.wowhead.com/zone=13647/thaldraszus)
 * [The Azure Span](https://www.wowhead.com/zone=13646/the-azure-span)
 * [The Waking Shores](https://www.wowhead.com/zone=13644/the-waking-shores)
+
+### Patch 10.0.7 - _The Forbidden Reach_
+
+* [The Forbidden Reach](https://www.wowhead.com/zone=14433/the-forbidden-reach)

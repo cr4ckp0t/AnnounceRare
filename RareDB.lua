@@ -1709,5 +1709,131 @@ function AR:LoadRares()
             ["name"] = "Frozion",
             ["announced"] = false
         },
+
+        -- the forbidden reach
+		[200579] = {
+			["name"] = "Ishyra",
+			["announced"] = false,
+		},
+		[200584] = {
+			["name"] = "Vraken the Hunter",
+			["announced"] = false,
+		},
+		[200600] = {
+			["name"] = "Reisa the Drowned",
+			["announced"] = false,
+		},
+		[200610] = {
+			["name"] = "Duzalgor",
+			["announced"] = false,
+		},
+		[200619] = {
+			["name"] = "Tectonus",
+			["announced"] = false,
+		},
+		[200620] = {
+			["name"] = "Sir Pinchalot",
+			["announced"] = false,
+		},
+		[200621] = {
+			["name"] = "Manathema",
+			["announced"] = false,
+		},
+		[200622] = {
+			["name"] = "Snarfang",
+			["announced"] = false,
+		},
+		[200681] = {
+			["name"] = "Bonesifter Marwak",
+			["announced"] = false,
+		},
+		[200717] = {
+			["name"] = "Galakhad",
+			["announced"] = false,
+		},
+		[200721] = {
+			["name"] = "Grugoth the Hullcrusher",
+			["announced"] = false,
+		},
+		[200722] = {
+			["name"] = "Gareed",
+			["announced"] = false,
+		},
+		[200725] = {
+			["name"] = "Faunos",
+			["announced"] = false,
+		},
+		[200730] = {
+			["name"] = "Tidesmith Zarviss",
+			["announced"] = false,
+		},
+		[200737] = {
+			["name"] = "Arcantrix",
+			["announced"] = false,
+		},
+		[200738] = {
+			["name"] = "Kangalo",
+			["announced"] = false,
+		},
+		[200739] = {
+			["name"] = "Fimbol",
+			["announced"] = false,
+		},
+		[200740] = {
+			["name"] = "Agni Blazehoof",
+			["announced"] = false,
+		},
+		[200742] = {
+			["name"] = "Luttrok",
+			["announced"] = false,
+		},
+		[200743] = {
+			["name"] = "Amephyst",
+			["announced"] = false,
+		},
+		[200904] = {
+			["name"] = "Veltrax",
+			["announced"] = false,
+		},
+		[200911] = {
+			["name"] = "Volcanakk",
+			["announced"] = false,
+		},
+		[200956] = {
+			["name"] = "Ookbeard",
+			["announced"] = false,
+		},
+		[200960] = {
+			["name"] = "Warden Entrix",
+			["announced"] = false,
+		},
+		[200978] = {
+			["name"] = "Pyrachniss",
+			["announced"] = false,
+		},
+		[201013] = {
+			["name"] = "Wyrmslayer Angvardi",
+			["announced"] = false,
+		},
+		[201181] = {
+			["name"] = "Mad-Eye Carrey",
+			["announced"] = false,
+		},
+		[201182] = {
+			["name"] = "First Mate Ovdah",
+			["announced"] = false,
+		},
+		[201184] = {
+			["name"] = "Navigator Bi-Yun",
+			["announced"] = false,
+		},
+		[201310] = {
+			["name"] = "Nidharr",
+			["announced"] = false,
+		},
+		[203341] = {
+			["name"] = "Researcher Baneflare",
+			["announced"] = false,
+		},
     }
 end

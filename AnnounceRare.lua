@@ -63,7 +63,7 @@ AR.zones = {
 	2023, -- ohn'ahran plains
 	2024, -- the azure span
 	2025, -- thaldraszus
-
+	2151, -- the forbidden reach
 }
 local band = bit.band
 local ceil = math.ceil
@@ -291,10 +291,7 @@ local function GetGeneralChannelNumber()
 	if zoneText == nil or general == nil then
 		return false
 	end
-	return GetChannelName(
-		(GetLocale() == "ruRU" or GetLocale() == "esMX") and channelRUFormat:format(general, zoneText) or
-			channelFormat:format(general, zoneText)
-	)
+	return GetChannelName((GetLocale() == "ruRU" or GetLocale() == "esMX") and channelRUFormat:format(general, zoneText) or channelFormat:format(general, zoneText))
 end
 
 -- Time Displacement
