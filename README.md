@@ -46,3 +46,7 @@ The folowwing is an updated list of zones where rares are currently being tracke
 ### Patch 10.0.7 - _The Forbidden Reach_
 
 * [The Forbidden Reach](https://www.wowhead.com/zone=14433/the-forbidden-reach)
+
+### Patch 10.1.0 - _Zaralek Cavern_
+
+* [Zaralek Cavern](https://www.wowhead.com/zone=14022/zaralek-cavern)
