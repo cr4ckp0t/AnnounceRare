@@ -1,7 +1,8 @@
 ## Interface: 100107
 ## Author: Crackpot
 ## Title: Announce Rare
-## Version: 3.5.4
+## IconTexture: Interface\AddOns\AnnounceRare\Media\crackpot
+## Version: 3.5.5
 ## Notes: Announce rares to general chat.
 ## SavedVariables: AnnounceRareDB
 ## OptionalDeps: TomTom
@@ -32,8 +33,3 @@ Locales\zhTW.lua
 
 AnnounceRare.lua
 RareDB.lua
-
-
-
-
-
