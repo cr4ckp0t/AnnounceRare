@@ -1835,5 +1835,87 @@ function AR:LoadRares()
 			["name"] = "Researcher Baneflare",
 			["announced"] = false,
 		},
+
+        -- zaralek cavern
+        [203515] = {
+            ["name"] = "Alcanon",
+            ["announced"] = false,
+        },
+        [203468] = {
+            ["name"] = "Aquifon",
+            ["announced"] = false,
+        },
+        [203621] = {
+            ["name"] = "Brullo the Strong",
+            ["announced"] = false,
+        },
+        [204093] = {
+            ["name"] = "Colossian",
+            ["announced"] = false,
+        },
+        [203646] = {
+            ["name"] = "Dinn",
+            ["announced"] = false,
+        },
+        [203664] = {
+            ["name"] = "Emberdusk",
+            ["announced"] = false,
+        },
+        [203660] = {
+            ["name"] = "Flowfy",
+            ["announced"] = false,
+        },
+        [203592] = {
+            ["name"] = "General Zskorro",
+            ["announced"] = false,
+        },
+        [203477] = {
+            ["name"] = "Goopal",
+            ["announced"] = false,
+        },
+        [203627] = {
+            ["name"] = "Invoq",
+            ["announced"] = false,
+        },
+        [203466] = {
+            ["name"] = "Kapraku",
+            ["announced"] = false,
+        },
+        [203625] = {
+            ["name"] = "Karokta",
+            ["announced"] = false,
+        },
+        [203618] = {
+            ["name"] = "Klakatak",
+            ["announced"] = false,
+        },
+        [203462] = {
+            ["name"] = "Kob'rok",
+            ["announced"] = false,
+        },
+        [200111] = {
+            ["name"] = "Magtembo",
+            ["announced"] = false,
+        },
+        [203521] = {
+            ["name"] = "Professor Gastrinax",
+            ["announced"] = false,
+        },
+        [203643] = {
+            ["name"] = "Skornak",
+            ["announced"] = false,
+        },
+        [203480] = {
+            ["name"] = "Spinmarrow",
+            ["announced"] = false,
+        },
+        [203662] = {
+            ["name"] = "Subterrax",
+            ["announced"] = false,
+        },
+        [203593] = {
+        ["name"] = "Underlight Queen",
+            ["announced"] = false,
+        },
     }
 end

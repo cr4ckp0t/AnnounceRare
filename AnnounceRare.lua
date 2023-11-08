@@ -64,6 +64,7 @@ AR.zones = {
 	2024, -- the azure span
 	2025, -- thaldraszus
 	2151, -- the forbidden reach
+	2133, -- zaralek cavern
 }
 local band = bit.band
 local ceil = math.ceil
