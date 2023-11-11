@@ -64,6 +64,8 @@ AR.zones = {
 	2024, -- the azure span
 	2025, -- thaldraszus
 	2151, -- the forbidden reach
+	2200, -- emerald dream
+	2254, -- barrows of reverie (10.2)
 }
 local band = bit.band
 local ceil = math.ceil

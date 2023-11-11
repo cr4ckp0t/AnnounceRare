@@ -1835,5 +1835,123 @@ function AR:LoadRares()
 			["name"] = "Researcher Baneflare",
 			["announced"] = false,
 		},
+
+        -- emerald dream
+        [208658] = {
+            ["name"] = "Moltenbinder's Disciple",
+            ["announced"] = false,
+        },
+        [209113] = {
+            ["name"] = "Nuoberon",
+            ["announced"] = false,
+        },
+        [209365] = {
+            ["name"] = "Splinterlimb",
+            ["announced"] = false,
+        },
+        [209620] = {
+            ["name"] = "Ignit the Firebranded",
+            ["announced"] = false,
+        },
+        [209893] = {
+            ["name"] = "Firebrand Fystia",
+            ["announced"] = false,
+        },
+        [209898] = {
+            ["name"] = "Reefbreaker Moruud",
+            ["announced"] = false,
+        },
+        [209902] = {
+            ["name"] = "Talthonei Ashwhisper",
+            ["announced"] = false,
+        },
+        [209909] = {
+            ["name"] = "Crabtankerous",
+            ["announced"] = false,
+        },
+        [209911] = {
+            ["name"] = "The Apostle",
+            ["announced"] = false,
+        },
+        [209912] = {
+            ["name"] = "Raszageth's Last Breath",
+            ["announced"] = false,
+        },
+        [209913] = {
+            ["name"] = "Fruitface",
+            ["announced"] = false,
+        },
+        [209915] = {
+            ["name"] = "Amalgamation of Dreams",
+            ["announced"] = false,
+        },
+        [209919] = {
+            ["name"] = "Isaqa",
+            ["announced"] = false,
+        },
+        [209929] = {
+            ["name"] = "Envoy of Winter",
+            ["announced"] = false,
+        },
+        [209936] = {
+            ["name"] = "Greedy Gessie",
+            ["announced"] = false,
+        },
+        [210045] = {
+            ["name"] = "Moragh the Slothful",
+            ["announced"] = false,
+        },
+        [210046] = {
+            ["name"] = "Keen-eyed Cian",
+            ["announced"] = false,
+        },
+        [210047] = {
+            ["name"] = "Somnambulant Ori",
+            ["announced"] = false,
+        },
+        [210050] = {
+            ["name"] = "Bloodstripe Great Ray",
+            ["announced"] = false,
+        },
+        [210051] = {
+            ["name"] = "Matriarch Keevah",
+            ["announced"] = false,
+        },
+        [210064] = {
+            ["name"] = "Molten Leadspike",
+            ["announced"] = false,
+        },
+        [210070] = {
+            ["name"] = "Mosa Umbramane",
+            ["announced"] = false,
+        },
+        [210075] = {
+            ["name"] = "Henri Snufftail",
+            ["announced"] = false,
+        },
+        [210111] = {
+            ["name"] = "Surging Lasher",
+            ["announced"] = false,
+        },
+        [210161] = {
+            ["name"] = "Ristar the Rabid",
+            ["announced"] = false,
+        },
+        [210508] = {
+            ["name"] = "Voracious Mikanji",
+            ["announced"] = false,
+        },
+        [210559] = {
+            ["name"] = "Balboan",
+            ["announced"] = false,
+        },
+        [212090] = {
+            ["name"] = "Elusive Blooming Brierhide",
+            ["announced"] = false,
+        },
+        [212133] = {
+            ["name"] = "Elusive Verdant Gladewarden",
+            ["announced"] = false,
+        },
     }
 end
