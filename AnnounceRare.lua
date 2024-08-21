@@ -13,6 +13,7 @@ local AR =
 local L = LibStub("AceLocale-3.0"):GetLocale("AnnounceRare", false)
 
 -- local api cache
+local C_AddOns_GetAddOnMetadata = C_AddOns.GetAddOnMetadata
 local C_ChatInfo_GetNumActiveChannels = C_ChatInfo.GetNumActiveChannels
 local C_Map_ClearUserWaypoint = C_Map.ClearUserWaypoint
 local C_Map_GetBestMapForUnit = C_Map.GetBestMapForUnit
@@ -23,7 +24,6 @@ local C_Map_SetUserWaypoint = C_Map.SetUserWaypoint
 local CombatLogGetCurrentEventInfo = _G["CombatLogGetCurrentEventInfo"]
 local CreateFrame = _G["CreateFrame"]
 local EnumerateServerChannels = _G["EnumerateServerChannels"]
-local GetAddOnMetadata = _G["GetAddOnMetadata"]
 local GetChannelName = _G["GetChannelName"]
 local GetGameTime = _G["GetGameTime"]
 local GetItemInfo = _G["GetItemInfo"]
@@ -42,8 +42,8 @@ local UnitHealthMax = _G["UnitHealthMax"]
 local UnitIsDead = _G["UnitIsDead"]
 local UnitName = _G["UnitName"]
 
-AR.title = GetAddOnMetadata("AnnounceRare", "Title")
-AR.version = GetAddOnMetadata("AnnounceRare", "Version")
+AR.title = C_AddOns_GetAddOnMetadata("AnnounceRare", "Title")
+AR.version = C_AddOns_GetAddOnMetadata("AnnounceRare", "Version")
 AR.cooldown = 180 -- 3 minutes
 AR.mouseCooldown = 30 -- 30 seconds
 AR.linkCooldown = 15 -- 1 minute
